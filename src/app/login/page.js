@@ -13,6 +13,21 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
+  const checkOperatorAccess = async (userId) => {
+    const { data, error } = await supabase
+      .from("operators")
+      .select()
+      .eq("id", userId)
+      .single();
+
+    if (error) {
+      console.error("Error checking operator access:", error);
+      return false;
+    }
+
+    return !!data; // Returns true if operator exists, false otherwise
+  };
+
   const handleLogin = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -25,9 +40,21 @@ export default function Login() {
 
       if (error) {
         toast.error(error.message);
-      } else if (data?.user) {
-        toast.success("Login successful!");
-        router.push("/inventory");
+        return;
+      }
+
+      if (data?.user) {
+        // Check if user exists in operators table
+        const hasOperatorAccess = await checkOperatorAccess(data.user.id);
+
+        if (hasOperatorAccess) {
+          toast.success("Login successful!");
+          router.push("/inventory");
+        } else {
+          // User exists in auth but not in operators table
+          await supabase.auth.signOut(); // Sign them out
+          toast.error("Access denied. You are not authorized as an operator.");
+        }
       }
     } catch (error) {
       toast.error("An unexpected error occurred");

@@ -20,7 +20,6 @@ const AuthGuard = ({ children }) => {
 
     checkAuth();
 
-    // Set up auth state change listener
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
