@@ -6,7 +6,7 @@ import { TiLocationArrowOutline } from "react-icons/ti";
 import { MdOutlineInventory, MdOutlineBarChart } from "react-icons/md";
 import { BsTruck } from "react-icons/bs";
 import { FaSignOutAlt } from "react-icons/fa";
-import { supabase } from "/utils/supabase/client"; // adjust the path as needed
+import { supabase } from "/utils/supabase/client";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
@@ -16,7 +16,7 @@ const Navbar = () => {
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
-    router.push("/login"); // Redirect to login page after sign out
+    router.push("/login");
   };
 
   return (

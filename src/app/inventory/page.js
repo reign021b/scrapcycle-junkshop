@@ -88,20 +88,46 @@ const Inventory = () => {
   };
 
   const fetchInventory = async (initialFetch = false) => {
-    if (initialFetch) setLoading(true); // Only set loading on initial fetch
+    if (initialFetch) setLoading(true);
     try {
+      // First, get the current user's session
+      const {
+        data: { session },
+        error: sessionError,
+      } = await supabase.auth.getSession();
+      if (sessionError) throw sessionError;
+
+      if (!session) {
+        throw new Error("No authenticated session found");
+      }
+
+      // Get the operator information for the logged-in user
+      const { data: operatorData, error: operatorError } = await supabase
+        .from("operators")
+        .select("id, junkshop_id")
+        .eq("id", session.user.id)
+        .single();
+
+      if (operatorError) throw operatorError;
+      if (!operatorData) throw new Error("Operator not found");
+
+      // Get all inventory data from the function
       const { data, error } = await supabase.rpc(
         "get_purchase_logs_for_junkshop_inventory"
       );
 
-      if (error) {
-        throw error;
-      }
-      setPurchaseLogs(data);
+      if (error) throw error;
+
+      // Filter the data based on the operator's junkshop_id
+      const filteredData = data.filter(
+        (item) => item.junkshop_id === operatorData.junkshop_id
+      );
+      setPurchaseLogs(filteredData);
     } catch (error) {
+      console.error("Error fetching inventory:", error.message);
       setError(error.message);
     } finally {
-      if (initialFetch) setLoading(false); // Only set loading to false on initial fetch
+      if (initialFetch) setLoading(false);
     }
   };
 
