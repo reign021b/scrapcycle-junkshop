@@ -81,7 +81,6 @@ export default function Login() {
         const hasOperatorAccess = await checkOperatorAccess(data.user.id);
 
         if (hasOperatorAccess) {
-          toast.success("Login successful!");
           await router.push("/inventory");
           setRedirected(true);
         } else {
