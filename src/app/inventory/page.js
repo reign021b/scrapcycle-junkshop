@@ -15,6 +15,7 @@ import { LuPlus } from "react-icons/lu";
 import { TbArrowsSort, TbEdit } from "react-icons/tb";
 import { CgTrash } from "react-icons/cg";
 import { ImMakeGroup } from "react-icons/im";
+import AddPurchaseModal from "./components/AddPurchaseModal";
 
 const Inventory = () => {
   const router = useRouter();
@@ -24,7 +25,18 @@ const Inventory = () => {
   const [error, setError] = useState(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isInsertModalOpen, setIsInsertModalOpen] = useState(false); // State for InsertModal
   const [currentItem, setCurrentItem] = useState(null);
+
+  // Function to open the Insert Modal
+  const openInsertModal = () => {
+    setIsInsertModalOpen(true);
+  };
+
+  // Handle the closing of the Insert Modal
+  const closeInsertModal = () => {
+    setIsInsertModalOpen(false);
+  };
 
   const handleSaveEdit = async () => {
     try {
@@ -464,7 +476,10 @@ const Inventory = () => {
                   <div className="ml-2 text-sm">Sort by</div>
                 </div>
                 <div className="mr-6 border-[0.5px] border-r-0 h-10"></div>
-                <div className="bg-[#27AE60] text-white pl-4 pr-3 py-[6px] font-[450] text-sm flex items-center rounded-lg cursor-pointer">
+                <div
+                  onClick={openInsertModal}
+                  className="bg-[#27AE60] text-white pl-4 pr-3 py-[6px] font-[450] text-sm flex items-center rounded-lg cursor-pointer"
+                >
                   <div className="mr-2 text-sm">Insert</div>
                   <div className="text-xl text-white flex items-center">
                     <LuPlus />
@@ -472,6 +487,13 @@ const Inventory = () => {
                 </div>
               </div>
             </div>
+
+            {/* Insert Modal */}
+            <AddPurchaseModal
+              isOpen={isInsertModalOpen}
+              onClose={closeInsertModal}
+            />
+
             <div className="grid grid-cols-12 w-full items-center justify-between pl-8 pr-[2.5rem]  2xl:pr-[3.5rem] bg-gray-50 h-[3rem] text-gray-500 border border-x-0 font-medium">
               <div className="text-xs text-center">PURCHASE ID</div>
               <div className="col-span-2 text-xs text-center">
