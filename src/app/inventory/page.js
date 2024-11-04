@@ -27,6 +27,10 @@ const Inventory = () => {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isInsertModalOpen, setIsInsertModalOpen] = useState(false); // State for InsertModal
   const [currentItem, setCurrentItem] = useState(null);
+  const [cities, setCities] = useState([]);
+  const [selectedCity, setSelectedCity] = useState("All");
+  const [filteredLogs, setFilteredLogs] = useState([]);
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
 
   // Function to open the Insert Modal
   const openInsertModal = () => {
@@ -102,7 +106,6 @@ const Inventory = () => {
   const fetchInventory = async (initialFetch = false) => {
     if (initialFetch) setLoading(true);
     try {
-      // First, get the current user's session
       const {
         data: { session },
         error: sessionError,
@@ -113,7 +116,6 @@ const Inventory = () => {
         throw new Error("No authenticated session found");
       }
 
-      // Get the operator information for the logged-in user
       const { data: operatorData, error: operatorError } = await supabase
         .from("operators")
         .select("id, junkshop_id")
@@ -123,18 +125,23 @@ const Inventory = () => {
       if (operatorError) throw operatorError;
       if (!operatorData) throw new Error("Operator not found");
 
-      // Get all inventory data from the function
       const { data, error } = await supabase.rpc(
         "get_purchase_logs_for_junkshop_inventory"
       );
 
       if (error) throw error;
 
-      // Filter the data based on the operator's junkshop_id
       const filteredData = data.filter(
         (item) => item.junkshop_id === operatorData.junkshop_id
       );
+
+      // Extract unique cities
+      const uniqueCities = [
+        ...new Set(filteredData.map((item) => item.city)),
+      ].filter(Boolean);
+      setCities(uniqueCities);
       setPurchaseLogs(filteredData);
+      setFilteredLogs(filteredData);
     } catch (error) {
       console.error("Error fetching inventory:", error.message);
       setError(error.message);
@@ -145,13 +152,16 @@ const Inventory = () => {
 
   useEffect(() => {
     fetchInventory(true);
-
-    const interval = setInterval(() => {
-      fetchInventory();
-    }, 5000);
-
-    return () => clearInterval(interval);
   }, []);
+
+  useEffect(() => {
+    if (selectedCity === "All") {
+      setFilteredLogs(purchaseLogs);
+    } else {
+      const filtered = purchaseLogs.filter((log) => log.city === selectedCity);
+      setFilteredLogs(filtered);
+    }
+  }, [selectedCity, purchaseLogs]);
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -463,11 +473,35 @@ const Inventory = () => {
                 Purchase Logs
               </div>
               <div className="flex justify-between items-center">
-                <div className="mr-8 flex items-center font-medium cursor-pointer">
-                  <span className="text-lg">
-                    <LuFilter />
-                  </span>{" "}
-                  <div className="ml-2 text-sm">Filter</div>
+                <div className="relative">
+                  <div
+                    className="mr-8 flex items-center font-medium cursor-pointer hover:bg-gray-50 p-2 rounded-xl"
+                    onClick={() => setIsFilterOpen(!isFilterOpen)}
+                  >
+                    <span className="text-lg">
+                      <LuFilter />
+                    </span>{" "}
+                    <div className="ml-2 text-sm">Filter</div>
+                  </div>
+                  {isFilterOpen && (
+                    <div className="absolute top-10 left-0 mt-1 bg-white border rounded-md shadow-lg z-50 min-w-[150px]">
+                      <select
+                        value={selectedCity}
+                        onChange={(e) => {
+                          setSelectedCity(e.target.value);
+                          setIsFilterOpen(false);
+                        }}
+                        className="w-full p-2 outline-none cursor-pointer rounded-full"
+                      >
+                        <option value="All">All Cities</option>
+                        {cities.map((city) => (
+                          <option key={city} value={city}>
+                            {city}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
                 </div>
                 <div className="mr-8 flex items-center font-medium cursor-pointer">
                   <span className="text-lg">
@@ -507,10 +541,12 @@ const Inventory = () => {
               <div className="col-span-2 text-xs text-center">CHANNEL</div>
             </div>
             <div className="max-h-[50.2rem] overflow-y-auto">
-              {purchaseLogs.map((item) => (
+              {filteredLogs.map((item) => (
                 <div
                   key={item.collected_id}
-                  className="inventory-item grid grid-cols-12 w-full items-center justify-between pl-8 pr-[2.5rem] h-[4rem] border border-x-0 border-t-0 font-[470] group hover:shadow-md"
+                  className={`inventory-item grid grid-cols-12 w-full items-center justify-between pl-8 ${
+                    filteredLogs.length < 13 ? "pr-[3.5rem]" : "pr-[2.5rem]"
+                  } h-[4rem] border border-x-0 border-t-0 font-[470] group hover:shadow-md`}
                 >
                   <div className="text-[0.7rem] text-center items-center">
                     #
