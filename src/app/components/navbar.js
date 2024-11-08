@@ -1,14 +1,17 @@
 "use client";
 
 import Image from "next/image";
+import { supabase } from "/utils/supabase/client";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import Link from "next/link";
+
+// Icons
 import { AiOutlineHome } from "react-icons/ai";
 import { TiLocationArrowOutline } from "react-icons/ti";
 import { MdOutlineInventory, MdOutlineBarChart } from "react-icons/md";
 import { BsTruck } from "react-icons/bs";
 import { FaSignOutAlt } from "react-icons/fa";
-import { supabase } from "/utils/supabase/client";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
 
 const Navbar = () => {
   const router = useRouter();
@@ -21,42 +24,54 @@ const Navbar = () => {
 
   return (
     <div className="flex items-center justify-between px-10 py-3">
-      <Image src="/scrapcycle-logo.png" width={207} height={55} alt="Logo" />
+      <div className="relative inline-block w-[14.6rem]">
+        <Image
+          src="/scrapcycle-logo.png"
+          width={207}
+          height={55}
+          alt="Logo"
+          className="block"
+        />
+        <span className="absolute mt-6 ml-5 inset-1 flex items-center justify-center text-[0.7rem] text-gray-600">
+          Scrapyard Management System
+        </span>
+      </div>
+
       <div className="flex justify-between">
-        <a href="#">
-          <div className="flex items-center mr-2 hover:bg-green-50 hover:text-green-600 p-3 rounded-lg">
+        <Link href="#">
+          <div className="flex items-center mr-2 hover:bg-green-50 hover:text-green-600 p-3 rounded-lg cursor-pointer">
             <AiOutlineHome className="text-2xl" />
             <p className="font-semibold text-sm ml-2">Dashboard</p>
           </div>
-        </a>
+        </Link>
 
-        <a href="#">
+        <Link href="#">
           <div className="flex items-center mr-2 hover:bg-green-50 hover:text-green-600 p-3 rounded-lg group">
             <TiLocationArrowOutline className="text-2xl border-2 rounded-full border-black font-bold group-hover:border-green-600" />
             <p className="font-semibold text-sm ml-2">Tracking</p>
           </div>
-        </a>
+        </Link>
 
-        <a href="#">
+        <Link href="/inventory">
           <div className="flex items-center mr-2 hover:bg-green-50 hover:text-green-600 p-3 rounded-lg group">
             <MdOutlineInventory className="text-2xl" />
             <p className="font-semibold text-sm ml-2">Inventory</p>
           </div>
-        </a>
+        </Link>
 
-        <a href="#">
+        <Link href="#">
           <div className="flex items-center mr-2 hover:bg-green-50 hover:text-green-600 p-3 rounded-lg group">
             <BsTruck className="text-2xl transform scale-x-[-1]" />
             <p className="font-semibold text-sm ml-2">Shipment</p>
           </div>
-        </a>
+        </Link>
 
-        <a href="#">
+        <Link href="#">
           <div className="flex items-center mr-2 hover:bg-green-50 hover:text-green-600 p-3 rounded-lg group">
             <MdOutlineBarChart className="text-xl border-2 rounded border-black font-bold group-hover:border-green-600" />
             <p className="font-semibold text-sm ml-2">Finances</p>
           </div>
-        </a>
+        </Link>
       </div>
       <div className="flex items-center">
         <Image

@@ -16,6 +16,7 @@ import { TbArrowsSort, TbEdit } from "react-icons/tb";
 import { CgTrash } from "react-icons/cg";
 import { ImMakeGroup } from "react-icons/im";
 import AddPurchaseModal from "./components/AddPurchaseModal";
+import { LiaCitySolid } from "react-icons/lia";
 
 const Inventory = () => {
   const router = useRouter();
@@ -151,8 +152,21 @@ const Inventory = () => {
   };
 
   useEffect(() => {
-    fetchInventory(true);
+    // Trigger loading only once on initial render
+    const initialFetch = async () => {
+      setLoading(true);
+      await fetchInventory();
+      setLoading(false);
+    };
+    initialFetch();
   }, []);
+
+  useEffect(() => {
+    // Trigger fetchInventory only when isInsertModalOpen is set to false
+    if (!isInsertModalOpen) {
+      fetchInventory();
+    }
+  }, [isInsertModalOpen]);
 
   useEffect(() => {
     if (selectedCity === "All") {
@@ -473,9 +487,35 @@ const Inventory = () => {
                 Purchase Logs
               </div>
               <div className="flex justify-between items-center">
+                <div className="flex items-center mr-4">
+                  <div className="text-xl">
+                    <LiaCitySolid />
+                  </div>
+                  <select
+                    value={selectedCity}
+                    onChange={(e) => {
+                      setSelectedCity(e.target.value);
+                      setIsFilterOpen(false);
+                    }}
+                    className="w-full py-2 pl-1 pr-2 outline-none cursor-pointer rounded-full text-center text-sm font-medium appearance-none"
+                    style={{
+                      WebkitAppearance: "none",
+                      MozAppearance: "none",
+                      appearance: "none",
+                    }}
+                  >
+                    <option value="All">All Cities</option>
+                    {cities.map((city) => (
+                      <option key={city} value={city}>
+                        {city}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
                 <div className="relative">
                   <div
-                    className="mr-8 flex items-center font-medium cursor-pointer hover:bg-gray-50 p-2 rounded-xl"
+                    className="mr-8 flex items-center font-medium cursor-pointer p-2 rounded-xl"
                     onClick={() => setIsFilterOpen(!isFilterOpen)}
                   >
                     <span className="text-lg">
@@ -483,25 +523,6 @@ const Inventory = () => {
                     </span>{" "}
                     <div className="ml-2 text-sm">Filter</div>
                   </div>
-                  {isFilterOpen && (
-                    <div className="absolute top-10 left-0 mt-1 bg-white border rounded-md shadow-lg z-50 min-w-[150px]">
-                      <select
-                        value={selectedCity}
-                        onChange={(e) => {
-                          setSelectedCity(e.target.value);
-                          setIsFilterOpen(false);
-                        }}
-                        className="w-full p-2 outline-none cursor-pointer rounded-full"
-                      >
-                        <option value="All">All Cities</option>
-                        {cities.map((city) => (
-                          <option key={city} value={city}>
-                            {city}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                  )}
                 </div>
                 <div className="mr-8 flex items-center font-medium cursor-pointer">
                   <span className="text-lg">
@@ -603,7 +624,11 @@ const Inventory = () => {
                     {item.quantity > 1 ? "s" : ""}
                   </div>
                   <div className="text-[0.7rem] text-center">
-                    ₱{item.total.toFixed(2)}
+                    ₱
+                    {item.total.toLocaleString(undefined, {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    })}
                   </div>
                   <div className="text-[0.7rem] text-center">
                     {item.seller
@@ -714,16 +739,16 @@ const Inventory = () => {
                         />
                       </label>
                     </div>
-                    <div className="flex justify-end">
+                    <div className="flex justify-end text-sm">
                       <button
                         onClick={handleSaveEdit}
-                        className="bg-[#27AE60] text-white py-2 px-4 rounded mr-2 hover:bg-green-700"
+                        className="bg-[#27AE60] text-white py-2 px-4 rounded-lg mr-2 hover:bg-green-700"
                       >
                         Save
                       </button>
                       <button
                         onClick={() => setIsEditModalOpen(false)}
-                        className="bg-gray-200 text-gray-700 py-2 px-4 rounded hover:bg-gray-300"
+                        className="bg-gray-200 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-300"
                       >
                         Cancel
                       </button>
