@@ -32,6 +32,23 @@ const AddPurchaseModal = ({ isOpen, onClose }) => {
   const [typeOptions, setTypeOptions] = useState([]);
   const [allItems, setAllItems] = useState([]);
   const [filteredItems, setFilteredItems] = useState([]);
+  const [isTypeDropdownOpen, setIsTypeDropdownOpen] = useState(false);
+  const [isItemDropdownOpen, setIsItemDropdownOpen] = useState(false);
+  const [filteredTypeOptions, setFilteredTypeOptions] = useState([]);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (!event.target.closest(".relative")) {
+        setIsTypeDropdownOpen(false);
+        setIsItemDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   // Helper function to parse price string
   const parsePriceString = (priceString) => {
@@ -179,21 +196,27 @@ const AddPurchaseModal = ({ isOpen, onClose }) => {
   };
 
   const handleAddItem = () => {
-    // Check if Type and Item are not empty or null
-    if (!itemInput.type || !itemInput.item) {
-      toast.error("Please choose Type and Item first.");
+    // Check if Type is valid
+    if (!typeOptions.includes(itemInput.type)) {
+      toast.error("Please select a valid item type from the list.");
+      return;
+    }
+
+    // Check if Item is valid
+    if (!filteredItems.some((item) => item.itemName === itemInput.item)) {
+      toast.error("Please select a valid item from the list.");
       return;
     }
 
     // Check if Quantity is greater than zero
     if (itemInput.quantity > 0) {
-      const totalCommission = itemInput.commission * itemInput.quantity; // Calculate total commission
+      const totalCommission = itemInput.commission * itemInput.quantity;
       setItems([
         ...items,
         {
           ...itemInput,
           total: itemInput.price * itemInput.quantity,
-          totalCommission, // Store the total commission
+          totalCommission,
         },
       ]);
       setItemInput({
@@ -462,36 +485,200 @@ const AddPurchaseModal = ({ isOpen, onClose }) => {
               <label className="block text-sm font-medium text-gray-700">
                 Item Type
               </label>
-              <select
-                className="w-full border border-gray-300 rounded-lg p-2 text-sm"
-                value={itemInput.type}
-                onChange={(e) => handleTypeChange(e.target.value)}
-              >
-                <option value="">Select Item Type</option>
-                {typeOptions.map((type, index) => (
-                  <option key={index} value={type}>
-                    {type}
-                  </option>
-                ))}
-              </select>
+              <div className="relative">
+                <input
+                  type="text"
+                  className={`w-full border rounded-lg p-2 text-sm ${
+                    itemInput.type && !typeOptions.includes(itemInput.type)
+                      ? "border-red-500"
+                      : "border-gray-300"
+                  }`}
+                  value={itemInput.type}
+                  onChange={(e) => {
+                    const searchValue = e.target.value;
+                    // Allow letters, spaces, and hyphens
+                    if (/^[A-Za-z\s\-]*$/.test(searchValue)) {
+                      setItemInput({
+                        ...itemInput,
+                        type: searchValue,
+                        item: "", // Reset item when type changes
+                      });
+
+                      // Filter typeOptions based on search input
+                      if (searchValue.trim() === "") {
+                        setFilteredTypeOptions(typeOptions);
+                      } else {
+                        const filtered = typeOptions.filter((type) =>
+                          type.toLowerCase().includes(searchValue.toLowerCase())
+                        );
+                        setFilteredTypeOptions(filtered);
+                      }
+                      setIsTypeDropdownOpen(true);
+                    }
+                  }}
+                  onKeyDown={(e) => {
+                    // Allow letters, spaces, hyphens, and control keys
+                    const isAllowedCharacter = /^[A-Za-z\s\-]$/.test(e.key);
+                    const isControlKey = [
+                      "Backspace",
+                      "Delete",
+                      "ArrowLeft",
+                      "ArrowRight",
+                      "Tab",
+                    ].includes(e.key);
+
+                    if (!isAllowedCharacter && !isControlKey) {
+                      e.preventDefault();
+                    }
+                  }}
+                  onFocus={() => {
+                    setIsTypeDropdownOpen(true);
+                    setFilteredTypeOptions(typeOptions);
+                  }}
+                  placeholder="Search or select item type..."
+                />
+
+                {isTypeDropdownOpen && (
+                  <div className="absolute z-20 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-auto">
+                    {filteredTypeOptions.map((type, index) => (
+                      <div
+                        key={index}
+                        className="px-4 py-2 hover:bg-gray-100 cursor-pointer text-sm"
+                        onClick={() => {
+                          handleTypeChange(type);
+                          setIsTypeDropdownOpen(false);
+                        }}
+                      >
+                        {type}
+                      </div>
+                    ))}
+                    {filteredTypeOptions.length === 0 && (
+                      <div className="px-4 py-2 text-gray-500 text-sm">
+                        No matches found
+                      </div>
+                    )}
+                  </div>
+                )}
+                {itemInput.type && !typeOptions.includes(itemInput.type) && (
+                  <p className="text-red-500 text-xs mt-1">
+                    Please select a valid type from the list
+                  </p>
+                )}
+              </div>
             </div>
-            <div className="">
+
+            <div>
               <label className="block text-sm font-medium text-gray-700">
                 Item
               </label>
-              <select
-                className="w-full border border-gray-300 rounded-lg p-2 text-sm"
-                value={itemInput.itemName}
-                onChange={(e) => handleItemChange(e.target.value)}
-                disabled={!itemInput.type}
-              >
-                <option value="">Select Item</option>
-                {filteredItems.map((item, index) => (
-                  <option key={index} value={item.itemName}>
-                    {item.itemName}
-                  </option>
-                ))}
-              </select>
+              <div className="relative">
+                <input
+                  type="text"
+                  className={`w-full border rounded-lg p-2 text-sm ${
+                    itemInput.item &&
+                    !filteredItems.some(
+                      (item) => item.itemName === itemInput.item
+                    )
+                      ? "border-red-500"
+                      : "border-gray-300"
+                  }`}
+                  value={itemInput.item}
+                  onChange={(e) => {
+                    const searchValue = e.target.value;
+                    // Allow letters, spaces, numbers, dashes, periods, and parentheses
+                    if (/^[A-Za-z0-9\s\-\.\(\)]*$/.test(searchValue)) {
+                      setItemInput({
+                        ...itemInput,
+                        item: searchValue,
+                      });
+
+                      // Filter items based on search input
+                      if (searchValue.trim() === "") {
+                        setFilteredItems(
+                          allItems.filter(
+                            (item) => item.type === itemInput.type
+                          )
+                        );
+                      } else {
+                        const filtered = allItems.filter(
+                          (item) =>
+                            item.type === itemInput.type &&
+                            item.itemName
+                              .toLowerCase()
+                              .includes(searchValue.toLowerCase())
+                        );
+                        setFilteredItems(filtered);
+                      }
+                      setIsItemDropdownOpen(true);
+                    }
+                  }}
+                  onKeyDown={(e) => {
+                    // Allow letters, spaces, numbers, dashes, periods, parentheses, and control keys
+                    const isAllowedCharacter = /^[A-Za-z0-9\s\-\.\(\)]$/.test(
+                      e.key
+                    );
+                    const isControlKey = [
+                      "Backspace",
+                      "Delete",
+                      "ArrowLeft",
+                      "ArrowRight",
+                      "Tab",
+                    ].includes(e.key);
+
+                    if (!isAllowedCharacter && !isControlKey) {
+                      e.preventDefault();
+                    }
+                  }}
+                  onFocus={() => {
+                    if (typeOptions.includes(itemInput.type)) {
+                      setIsItemDropdownOpen(true);
+                      setFilteredItems(
+                        allItems.filter((item) => item.type === itemInput.type)
+                      );
+                    }
+                  }}
+                  placeholder={
+                    itemInput.type && typeOptions.includes(itemInput.type)
+                      ? "Search or select item..."
+                      : "Select valid type first"
+                  }
+                  disabled={
+                    !itemInput.type || !typeOptions.includes(itemInput.type)
+                  }
+                />
+
+                {isItemDropdownOpen &&
+                  itemInput.type &&
+                  typeOptions.includes(itemInput.type) && (
+                    <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-auto">
+                      {filteredItems.map((item, index) => (
+                        <div
+                          key={index}
+                          className="px-4 py-2 hover:bg-gray-100 cursor-pointer text-sm"
+                          onClick={() => {
+                            handleItemChange(item.itemName);
+                            setIsItemDropdownOpen(false);
+                          }}
+                        >
+                          {item.itemName}
+                        </div>
+                      ))}
+                      {filteredItems.length === 0 && (
+                        <div className="px-4 py-2 text-gray-500 text-sm">
+                          No matches found
+                        </div>
+                      )}
+                    </div>
+                  )}
+                {itemInput.item &&
+                  !filteredItems.some(
+                    (item) => item.itemName === itemInput.item
+                  ) && (
+                    <p className="text-red-500 text-xs mt-1">
+                      Please select a valid item from the list
+                    </p>
+                  )}
+              </div>
             </div>
           </div>
           <div className="grid grid-cols-3 gap-3">
