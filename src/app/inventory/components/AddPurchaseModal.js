@@ -6,7 +6,6 @@ import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 // Icons
-import { BiPurchaseTag } from "react-icons/bi";
 import { IoIosCloseCircleOutline } from "react-icons/io";
 import { LuPlus } from "react-icons/lu";
 

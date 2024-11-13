@@ -26,7 +26,7 @@ const Inventory = () => {
   const [error, setError] = useState(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [isInsertModalOpen, setIsInsertModalOpen] = useState(false); // State for InsertModal
+  const [isInsertModalOpen, setIsInsertModalOpen] = useState(false);
   const [currentItem, setCurrentItem] = useState(null);
   const [cities, setCities] = useState([]);
   const [selectedCity, setSelectedCity] = useState("All");
@@ -596,7 +596,7 @@ const Inventory = () => {
                     <div className="flex items-center">
                       <div>
                         <Image
-                          src={item.image}
+                          src={item.image ?? ""}
                           width={27}
                           height={27}
                           alt="item image"
