@@ -5,7 +5,9 @@ export default function Home() {
     <div>
       <main>
         <Navbar />
-        <div className="max-w-[1440px] bg-black min-h-screen mx-auto"></div>
+        <div className="w-full bg-gray-50 h-[91vh] mx-auto">
+          <div className="max-w-[1340px] h-full mx-auto"></div>
+        </div>
       </main>
     </div>
   );

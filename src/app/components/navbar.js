@@ -38,14 +38,14 @@ const Navbar = () => {
       </div>
 
       <div className="flex justify-between">
-        <Link href="#">
+        <Link href="/">
           <div className="flex items-center mr-2 hover:bg-green-50 hover:text-green-600 p-3 rounded-lg cursor-pointer">
             <AiOutlineHome className="text-2xl" />
             <p className="font-semibold text-sm ml-2">Dashboard</p>
           </div>
         </Link>
 
-        <Link href="#">
+        <Link href="/tracking">
           <div className="flex items-center mr-2 hover:bg-green-50 hover:text-green-600 p-3 rounded-lg group">
             <TiLocationArrowOutline className="text-2xl border-2 rounded-full border-black font-bold group-hover:border-green-600" />
             <p className="font-semibold text-sm ml-2">Tracking</p>
@@ -59,7 +59,7 @@ const Navbar = () => {
           </div>
         </Link>
 
-        <Link href="#">
+        <Link href="/shipment">
           <div className="flex items-center mr-2 hover:bg-green-50 hover:text-green-600 p-3 rounded-lg group">
             <BsTruck className="text-2xl transform scale-x-[-1]" />
             <p className="font-semibold text-sm ml-2">Shipment</p>

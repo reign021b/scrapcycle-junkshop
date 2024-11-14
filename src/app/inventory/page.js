@@ -247,8 +247,8 @@ const Inventory = () => {
             Purchases / Inventory
           </p>
         </div>
-        <div className="flex justify-between mx-12 mt-6 max-w-[1340px] 2xl:mx-auto">
-          <div className="w-[354px] min-h-[58.8rem] bg-white rounded-2xl border-[0.5px]">
+        <div className="flex justify-between mx-12 mt-6 max-w-[1340px] 2xl:mx-auto pb-5">
+          <div className="w-[354px] h-[79vh] bg-white rounded-2xl border-[0.5px]">
             <div>
               <p className="p-6 ml-1 font-[500] text-[1.25rem]">
                 All Scrap Items
@@ -481,7 +481,7 @@ const Inventory = () => {
           </div>
 
           {/* Purchase Logs */}
-          <div className="w-[964px] min-h-[58.8rem] bg-white rounded-2xl border-[0.5px]">
+          <div className="w-[964px] max-h-[79vh] bg-white rounded-2xl border-[0.5px]">
             <div className="px-6 py-3 flex justify-between items-center mr-3">
               <div className="py-3 ml-1 font-[500] text-[1.25rem]">
                 Purchase Logs
@@ -561,7 +561,7 @@ const Inventory = () => {
               <div className="col-span-1 text-xs text-center">SELLER</div>
               <div className="col-span-2 text-xs text-center">CHANNEL</div>
             </div>
-            <div className="max-h-[50.2rem] overflow-y-auto">
+            <div className="max-h-[64.5vh] overflow-y-auto">
               {filteredLogs.map((item) => (
                 <div
                   key={item.collected_id}
