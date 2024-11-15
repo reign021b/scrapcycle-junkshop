@@ -45,7 +45,7 @@ const Navbar = () => {
           <div
             className={`flex items-center mr-2 p-3 rounded-lg cursor-pointer ${
               pathname === "/"
-                ? "bg-green-50 text-green-600"
+                ? "bg-green-50 text-green-600 border border-green-200"
                 : "hover:bg-green-50 hover:text-green-600"
             }`}
           >
@@ -58,7 +58,7 @@ const Navbar = () => {
           <div
             className={`flex items-center mr-2 p-3 rounded-lg group ${
               pathname === "/tracking"
-                ? "bg-green-50 text-green-600"
+                ? "bg-green-50 text-green-600 border border-green-200"
                 : "hover:bg-green-50 hover:text-green-600"
             }`}
           >
@@ -77,7 +77,7 @@ const Navbar = () => {
           <div
             className={`flex items-center mr-2 p-3 rounded-lg group ${
               pathname === "/inventory"
-                ? "bg-green-50 text-green-600"
+                ? "bg-green-50 text-green-600 border border-green-200"
                 : "hover:bg-green-50 hover:text-green-600"
             }`}
           >
@@ -90,7 +90,7 @@ const Navbar = () => {
           <div
             className={`flex items-center mr-2 p-3 rounded-lg group ${
               pathname === "/shipment"
-                ? "bg-green-50 text-green-600"
+                ? "bg-green-50 text-green-600 border border-green-200"
                 : "hover:bg-green-50 hover:text-green-600"
             }`}
           >
@@ -103,7 +103,7 @@ const Navbar = () => {
           <div
             className={`flex items-center mr-2 p-3 rounded-lg group ${
               pathname === "#"
-                ? "bg-green-50 text-green-600"
+                ? "bg-green-50 text-green-600 border border-green-200"
                 : "hover:bg-green-50 hover:text-green-600"
             }`}
           >
