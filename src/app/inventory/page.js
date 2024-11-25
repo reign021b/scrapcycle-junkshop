@@ -566,7 +566,7 @@ const Inventory = () => {
                 <div
                   key={item.collected_id}
                   className={`inventory-item grid grid-cols-12 w-full items-center justify-between pl-8 ${
-                    filteredLogs.length < 13 ? "pr-[3.5rem]" : "pr-[2.5rem]"
+                    filteredLogs.length < 10 ? "pr-[3.5rem]" : "pr-[2.5rem]"
                   } h-[4rem] border border-x-0 border-t-0 font-[470] group hover:shadow-md`}
                 >
                   <div className="text-[0.7rem] text-center items-center">
