@@ -120,6 +120,8 @@ export default function Login() {
             className="flex flex-col w-full items-stretch mt-4 text-gray-800"
             onSubmit={handleLogin}
             noValidate
+            id="login-form"
+            name="login-form"
           >
             <label htmlFor="email" className="text-gray-600 font-medium mb-2">
               Email:

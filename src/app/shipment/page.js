@@ -15,7 +15,7 @@ const Shipment = () => {
           <p className="text-[1.6rem] font-semibold pt-5 pl-8">
             Sales & Shipment
           </p>
-          <p className="text-sm text-gray-400 font-semibold pl-8">
+          <p className="text-sm  text-[#828282] font-semibold pl-8">
             Purchases / Inventory
           </p>
         </div>

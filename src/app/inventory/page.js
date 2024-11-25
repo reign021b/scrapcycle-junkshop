@@ -243,7 +243,7 @@ const Inventory = () => {
       <div className="bg-[#F8F8F8] h-auto">
         <div className="mx-12 max-w-[1340px] 2xl:mx-auto pt-3 pl-8">
           <p className="font-semibold text-[1.6rem]">Scrap Inventory</p>
-          <p className="text-gray-400 text-sm font-medium">
+          <p className="text-[#828282] text-sm font-medium">
             Purchases / Inventory
           </p>
         </div>
