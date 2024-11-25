@@ -56,7 +56,7 @@ const Tracking = () => {
                 </div>
                 <div className="">
                   <div className="text-xs">Shipment ID</div>
-                  <div className="text-gray-500 font-medium">#1234FRDDE</div>
+                  <div className="text-gray-500 font-medium">#RTHDY333</div>
                 </div>
                 <div className="flex font-bold text-[0.65rem] items-center ml-5 rounded-xl bg-[#D7F5FB]">
                   <div className="px-5 py-1 text-[#0099FF]">In transit</div>
