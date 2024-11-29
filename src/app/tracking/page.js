@@ -180,8 +180,54 @@ const Tracking = () => {
           </div>
 
           {/* 2nd column */}
-          <div className="bg-white w-[965px] h-[79vh] rounded-xl  border-[1.5px] border-gray-200">
+          <div className="bg-white w-[965px] h-[79vh] rounded-xl border-[1.5px] border-gray-200 relative">
+            {/* Map */}
             <div className="flex justify-center items-center h-full">Map</div>
+
+            {/* Shipment Information Component */}
+            <div className="absolute top-8 right-6 bg-white p-4 shadow-md rounded-lg w-[469px] border border-gray-300">
+              <div className="flex flex-col">
+                <div className="flex justify-between">
+                  <div className="text-xs font-medium">
+                    <span className="text-gray-600">Shipment ID:</span>
+                    <span className="text-green-500 font-bold"> #RTHDY333</span>
+                  </div>
+                  <div className="text-xs">
+                    <span className="text-gray-600">Shipping Status:</span>
+                    <span className="text-blue-500 font-semibold">
+                      {" "}
+                      In-transit
+                    </span>
+                  </div>
+                </div>
+
+                <div className="flex justify-between border-t mt-2 pt-2 text-xs space-y-1">
+                  <div>
+                    <span className="text-gray-600">Departure:</span>
+                    <span className="font-medium">
+                      {" "}
+                      RC Junkshop, Butuan City
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-gray-600">Destination:</span>
+                    <span className="font-medium"> Barobo Station</span>
+                  </div>
+                </div>
+                <div className="flex justify-between text-xs">
+                  <div className="mt-8 grid">
+                    <div className="text-gray-600 mb-2">
+                      Shipment Departure:
+                    </div>
+                    <div className="font-medium">11 March, Monday 12:00 PM</div>
+                  </div>
+                  <div className="mt-8 grid">
+                    <div className="text-gray-600 mb-2">Est. Arrival Time:</div>
+                    <div className="font-medium">11 March, Monday 5:30 PM</div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>

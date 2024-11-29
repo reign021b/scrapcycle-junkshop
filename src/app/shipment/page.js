@@ -72,7 +72,7 @@ const Shipment = () => {
           </div>
 
           {/* Rows of Data */}
-          <div className="grid grid-cols-10 pl-6 text-xs text-gray-500 bg-[#EDFFF4] border border-t-0 border-x-0 py-4 pr-6 items-center">
+          <div className="grid grid-cols-10 pl-6 text-xs text-gray-500 bg-[#EDFFF4] border border-t-0 border-x-0 py-3 pr-6 items-center">
             <div>#1234FRDDE</div>
             <div className="text-black">Andy Martinez</div>
             <div className="text-black">231 Dar Subdivision, Butuan City</div>
@@ -107,6 +107,18 @@ const Shipment = () => {
             <div>TOTAL</div>
             <div className="text-center px-5">
               <div className="pr-4">PROFIT</div>
+            </div>
+          </div>
+          <div className="grid grid-cols-8 pl-6 text-xs border border-t-0 border-x-0 py-4 pr-6 items-center">
+            <div className="text-gray-400">#1234FRDDE</div>
+            <div>Copper</div>
+            <div>₱ 1,500,000</div>
+            <div>5,000 kgs</div>
+            <div className="text-[#27AE60] font-medium">5,010 kgs</div>
+            <div>₱ 420.00 / kg</div>
+            <div>₱ 2,104,200</div>
+            <div className="text-center px-5">
+              <div className="pr-4 text-[#27AE60] font-medium">₱ 604,200</div>
             </div>
           </div>
         </div>
