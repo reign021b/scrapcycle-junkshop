@@ -10,6 +10,7 @@ import { FaSortUp } from "react-icons/fa";
 import { PiRecordFill } from "react-icons/pi";
 import { FaPhoneAlt } from "react-icons/fa";
 import Image from "next/image";
+import MapComponent from "./components/MapComponent";
 
 const Tracking = () => {
   return (
@@ -182,7 +183,9 @@ const Tracking = () => {
           {/* 2nd column */}
           <div className="bg-white w-[965px] h-[79vh] rounded-xl border-[1.5px] border-gray-200 relative">
             {/* Map */}
-            <div className="flex justify-center items-center h-full">Map</div>
+            <div className="flex justify-center items-center h-full">
+              <MapComponent />
+            </div>
 
             {/* Shipment Information Component */}
             <div className="absolute top-8 right-6 bg-white p-4 shadow-md rounded-lg w-[469px] border border-gray-300">
