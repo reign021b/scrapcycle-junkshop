@@ -3,7 +3,7 @@ import { useState } from "react";
 
 const containerStyle = {
   width: "100%",
-  height: "750px",
+  height: "79vh",
   borderRadius: "12px",
 };
 
@@ -23,10 +23,11 @@ export default function MapComponent() {
   };
 
   const mapOptions = {
-    fullscreenControl: false, // Disable fullscreen button
-    zoomControl: true, // Enable zoom control
-    streetViewControl: true, // Enable Street View
-    mapTypeControl: true, // Enable map type control
+    fullscreenControl: false,
+    zoomControl: true,
+    streetViewControl: true,
+    mapTypeControl: true,
+    disableDefaultUI: false,
   };
 
   return (
@@ -34,8 +35,8 @@ export default function MapComponent() {
       <GoogleMap
         mapContainerStyle={containerStyle}
         center={center}
-        zoom={13}
-        options={mapOptions} // Pass options to customize the map controls
+        zoom={14}
+        options={mapOptions}
         onClick={handleMapClick}
       >
         <Marker position={markerPosition} />
