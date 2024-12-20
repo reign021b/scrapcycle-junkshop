@@ -32,6 +32,13 @@ const Inventory = () => {
   const [selectedCity, setSelectedCity] = useState("All");
   const [filteredLogs, setFilteredLogs] = useState([]);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [activeButton, setActiveButton] = useState("purchased");
+
+  const handleButtonClick = (button) => {
+    if (activeButton !== button) {
+      setActiveButton(button);
+    }
+  };
 
   // Function to open the Insert Modal
   const openInsertModal = () => {
@@ -482,8 +489,34 @@ const Inventory = () => {
 
           {/* Purchase Logs */}
           <div className="w-[964px] max-h-[79vh] bg-white rounded-2xl border-[0.5px]">
-            <div className="px-6 py-3 flex justify-between items-center mr-3">
-              <div className="py-3 ml-1 font-[500] text-[1.25rem]">
+            <div className="flex justify-center bg-gray-200 items-center text-center rounded-t-2xl">
+              <div
+                className={`cursor-pointer px-[12.75rem] py-2 border border-t-0 rounded-tl-2xl ${
+                  activeButton === "purchased"
+                    ? "bg-white text-black font-medium border-b-4 border-b-green-600 rounded-tr-2xl"
+                    : "bg-gray-200 text-gray-500"
+                }`}
+                onClick={() => handleButtonClick("purchased")}
+              >
+                Purchased
+              </div>
+              <div
+                className={`cursor-pointer px-[12.69rem] py-2 border border-t-0 rounded-tr-2xl ${
+                  activeButton === "processed"
+                    ? "bg-white text-black font-medium border-b-4 border-b-green-600 rounded-tl-2xl"
+                    : "bg-gray-200 text-gray-500"
+                }`}
+                onClick={() => handleButtonClick("processed")}
+              >
+                Processed
+              </div>
+            </div>
+            <div
+              className={`px-6 py-3 justify-between items-center mr-3 ${
+                activeButton === "purchased" ? "flex" : "hidden"
+              }`}
+            >
+              <div className="py-3 ml-1 font-[500] text-[1.25rem] ">
                 Purchase Logs
               </div>
               <div className="flex justify-between items-center">
@@ -549,7 +582,11 @@ const Inventory = () => {
               onClose={closeInsertModal}
             />
 
-            <div className="grid grid-cols-12 w-full items-center justify-between pl-8 pr-[2.5rem]  2xl:pr-[3.5rem] bg-gray-50 h-[3rem] text-gray-500 border border-x-0 font-medium">
+            <div
+              className={`grid grid-cols-12 w-full items-center justify-between pl-8 pr-[2.5rem]  2xl:pr-[3.5rem] bg-gray-50 h-[3rem] text-gray-500 border border-x-0 font-medium ${
+                activeButton === "purchased" ? "flex" : "hidden"
+              }`}
+            >
               <div className="text-xs text-center">PURCHASE ID</div>
               <div className="col-span-2 text-xs text-center">
                 DATE AND TIME
@@ -561,12 +598,16 @@ const Inventory = () => {
               <div className="col-span-1 text-xs text-center">SELLER</div>
               <div className="col-span-2 text-xs text-center">CHANNEL</div>
             </div>
-            <div className="max-h-[64.5vh] overflow-y-auto">
+            <div
+              className={`max-h-[60vh] overflow-y-auto ${
+                activeButton === "purchased" ? "block" : "hidden"
+              }`}
+            >
               {filteredLogs.map((item) => (
                 <div
                   key={item.collected_id}
                   className={`inventory-item grid grid-cols-12 w-full items-center justify-between pl-8 ${
-                    filteredLogs.length < 10 ? "pr-[3.5rem]" : "pr-[2.5rem]"
+                    filteredLogs.length < 9 ? "pr-[3.5rem]" : "pr-[2.5rem]"
                   } h-[4rem] border border-x-0 border-t-0 font-[470] group hover:shadow-md`}
                 >
                   <div className="text-[0.7rem] text-center items-center">

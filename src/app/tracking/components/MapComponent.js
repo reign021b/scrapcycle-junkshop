@@ -3,7 +3,7 @@ import { useState } from "react";
 
 const containerStyle = {
   width: "100%",
-  height: "79vh",
+  height: "78.8vh",
   borderRadius: "12px",
 };
 
