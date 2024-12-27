@@ -175,14 +175,14 @@ export default function ProcessedScraps() {
                   <div className="flex items-center">
                     <div>
                       <div className="flex items-center text-xs mb-2 justify-end">
-                        <p>528 kg / {item.goal_quantity} kg</p>
+                        <p>0 kg / {item.goal_quantity} kg</p>
                       </div>
                       <div className="flex items-end">
                         {[...Array(12)].map((_, i) => (
                           <div
                             key={i}
                             className={`h-[16px] w-[5px] ${
-                              i < 7 ? "bg-green-600" : "bg-[#D9D9D9]"
+                              i < 0 ? "bg-green-600" : "bg-[#D9D9D9]"
                             } rounded-2xl ${i < 11 ? "mr-1" : ""}`}
                           ></div>
                         ))}
