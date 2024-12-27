@@ -5,11 +5,9 @@ import Navbar from "../components/navbar";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { supabase } from "/utils/supabase/client";
+import ProcessedScraps from "./components/ProcessedScraps";
 
 // Icons
-import { LiaEqualsSolid, LiaGreaterThanSolid } from "react-icons/lia";
-import { BsFillPlusSquareFill } from "react-icons/bs";
-import { SlOptionsVertical } from "react-icons/sl";
 import { LuFilter } from "react-icons/lu";
 import { LuPlus } from "react-icons/lu";
 import { TbArrowsSort, TbEdit } from "react-icons/tb";
@@ -33,37 +31,7 @@ const Inventory = () => {
   const [filteredLogs, setFilteredLogs] = useState([]);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [activeButton, setActiveButton] = useState("purchased");
-  const [isGoalItemModalOpen, setIsGoalItemModalOpen] = useState(false);
-  const [formData, setFormData] = useState({
-    pricePerQuantity: "",
-    goalQuantity: "",
-  });
-  const [isCollapsed, setIsCollapsed] = useState(true);
-
-  const handleToggleCollapse = () => {
-    setIsCollapsed((prev) => !prev);
-  };
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    console.log("Form submitted:", formData);
-    // Handle form submission logic here
-    setIsGoalItemModalOpen(false); // Close the modal after submission
-  };
-
-  const handleOpenGoalItemModal = () => {
-    setIsGoalItemModalOpen(true);
-  };
-
-  const handleCloseGoalItemModal = () => {
-    setIsGoalItemModalOpen(false);
-  };
-
+  
   const handleButtonClick = (button) => {
     if (activeButton !== button) {
       setActiveButton(button);
@@ -285,163 +253,7 @@ const Inventory = () => {
           </p>
         </div>
         <div className="flex justify-between mx-12 mt-6 max-w-[1340px] 2xl:mx-auto pb-5">
-          <div className="w-[354px] h-[79vh] bg-white rounded-2xl border-[0.5px]">
-            <div>
-              <p className="p-6 ml-1 font-[500] text-[1.25rem]">
-                All Scrap Items
-              </p>
-            </div>
-            <div
-              className={`flex bg-green-50 justify-between ${
-                !isCollapsed ? "border-t-2 border-b-2 border-gray-200" : ""
-              }`}
-            >
-              <div
-                className="px-6 py-3 flex items-center cursor-pointer"
-                onClick={handleToggleCollapse}
-              >
-                {isCollapsed ? <LiaGreaterThanSolid /> : <LiaEqualsSolid />}
-                &nbsp; &nbsp;
-                <p className="font-medium text-[1rem]">Metals</p>
-              </div>
-              <div className="text-[1.7rem] text-green-600 flex items-center px-5">
-                <BsFillPlusSquareFill />
-              </div>
-            </div>
-            <div
-              style={{
-                maxHeight: isCollapsed ? "0" : "200px", // Adjust based on content height
-                overflow: "hidden",
-                transition: "max-height 0.3s ease-in-out",
-              }}
-            >
-              {!isCollapsed && (
-                <div
-                  className="pl-6 pr-3 py-2 mt-2 flex justify-between hover:border-gray-500 cursor-pointer"
-                  onClick={handleOpenGoalItemModal}
-                >
-                  <div className="flex">
-                    <div>
-                      <Image
-                        src="https://alfljqjdwlomzepvepun.supabase.co/storage/v1/object/public/junkshop-admin/Copper.png"
-                        width={50}
-                        height={50}
-                        alt="Copper"
-                      />
-                    </div>
-                    <div className="ml-3 items-center">
-                      <p className="font-semibold">Copper A</p>
-                      <p className="pt-1 font-[480] text-sm text-gray-500">
-                        ₱ 12.00 / kg
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-center">
-                    <div>
-                      <div className="flex items-center text-xs mb-2 justify-end">
-                        <p>528 kg / 800 kg</p>
-                      </div>
-                      <div className="flex items-end">
-                        <div className="h-[16px] w-[5px] bg-green-600 rounded-2xl mr-1"></div>
-                        <div className="h-[16px] w-[5px] bg-green-600 rounded-2xl mr-1"></div>
-                        <div className="h-[16px] w-[5px] bg-green-600 rounded-2xl mr-1"></div>
-                        <div className="h-[16px] w-[5px] bg-green-600 rounded-2xl mr-1"></div>
-                        <div className="h-[16px] w-[5px] bg-green-600 rounded-2xl mr-1"></div>
-                        <div className="h-[16px] w-[5px] bg-green-600 rounded-2xl mr-1"></div>
-                        <div className="h-[16px] w-[5px] bg-green-600 rounded-2xl mr-1"></div>
-                        <div className="h-[16px] w-[5px] bg-[#D9D9D9] rounded-2xl mr-1"></div>
-                        <div className="h-[16px] w-[5px] bg-[#D9D9D9] rounded-2xl mr-1"></div>
-                        <div className="h-[16px] w-[5px] bg-[#D9D9D9] rounded-2xl mr-1"></div>
-                        <div className="h-[16px] w-[5px] bg-[#D9D9D9] rounded-2xl mr-1"></div>
-                        <div className="h-[16px] w-[5px] bg-[#D9D9D9] rounded-2xl"></div>
-                      </div>
-                    </div>
-                    <div className="ml-2 text-gray-500 font-extralight">
-                      <SlOptionsVertical />
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* goalItem Modal */}
-            {isGoalItemModalOpen && (
-              <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                <div className="bg-white rounded-2xl p-6 w-1/4 relative">
-                  <button
-                    className="absolute top-4 right-4 text-gray-600 hover:text-gray-800"
-                    onClick={handleCloseGoalItemModal}
-                  >
-                    ✕
-                  </button>
-                  <h2 className="text-lg font-bold text-center">
-                    Metals - Copper A
-                  </h2>
-                  <div className="flex justify-center my-4">
-                    <Image
-                      src="https://alfljqjdwlomzepvepun.supabase.co/storage/v1/object/public/junkshop-admin/Copper.png"
-                      width={80}
-                      height={80}
-                      alt="Copper"
-                    />
-                  </div>
-                  <form onSubmit={handleSubmit}>
-                    {/* Price Per Quantity Input */}
-                    <div className="mb-4">
-                      <label
-                        className="block text-gray-700 font-medium mb-2"
-                        htmlFor="pricePerQuantity"
-                      >
-                        Price per kg
-                      </label>
-                      <input
-                        type="number"
-                        id="pricePerQuantity"
-                        name="pricePerQuantity"
-                        value={formData.pricePerQuantity}
-                        onChange={handleChange}
-                        className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
-                        placeholder="Enter price per quantity"
-                        required
-                        min="0"
-                      />
-                    </div>
-
-                    {/* Goal Quantity Input */}
-                    <div className="mb-4">
-                      <label
-                        className="block text-gray-700 font-medium mb-2"
-                        htmlFor="goalQuantity"
-                      >
-                        Quantity Goal
-                      </label>
-                      <input
-                        type="number"
-                        id="goalQuantity"
-                        name="goalQuantity"
-                        value={formData.goalQuantity}
-                        onChange={handleChange}
-                        className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
-                        placeholder="Enter goal quantity"
-                        required
-                        min="0"
-                      />
-                    </div>
-
-                    {/* Submit Button */}
-                    <div className="w-full flex justify-end">
-                      <button
-                        type="submit"
-                        className="w-1/3 bg-green-600 text-white py-2 rounded-lg hover:bg-green-700"
-                      >
-                        Confirm
-                      </button>
-                    </div>
-                  </form>
-                </div>
-              </div>
-            )}
-          </div>
+          <ProcessedScraps />
 
           {/* Purchase Logs */}
           <div className="w-[964px] max-h-[79vh] bg-white rounded-2xl border-[0.5px]">
