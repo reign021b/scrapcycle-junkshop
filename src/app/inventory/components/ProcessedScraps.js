@@ -13,40 +13,58 @@ export default function ProcessedScraps() {
     goalQuantity: "",
   });
   const [collapsedStates, setCollapsedStates] = useState({});
-  const [itemGoals, setItemGoals] = useState([]);
   const [groupedItems, setGroupedItems] = useState({});
+  const [itemTypes, setItemTypes] = useState([]);
 
   useEffect(() => {
-    const fetchItemGoals = async () => {
-      const { data, error } = await supabase.rpc("get_itemgoals_for_inventory");
-      if (error) {
-        console.error("Error fetching item goals:", error);
-        return;
-      }
+    const fetchData = async () => {
+      try {
+        // First, fetch all item types
+        const { data: types, error: typesError } = await supabase
+          .from("itemtypes")
+          .select("name");
 
-      setItemGoals(data);
+        if (typesError) throw typesError;
 
-      const grouped = data.reduce((acc, item) => {
-        if (!acc[item.type]) {
-          acc[item.type] = [];
-        }
-        acc[item.type].push(item);
-        return acc;
-      }, {});
+        // Then fetch all items with their goals
+        const { data: items, error: itemsError } = await supabase.rpc(
+          "get_itemgoals_for_inventory"
+        );
 
-      setGroupedItems(grouped);
+        if (itemsError) throw itemsError;
 
-      const initialCollapsedStates = Object.keys(grouped).reduce(
-        (acc, type) => {
-          acc[type] = true;
+        // Initialize groups with all types, even empty ones
+        const initialGroups = types.reduce((acc, { name }) => {
+          acc[name.toLowerCase()] = [];
           return acc;
-        },
-        {}
-      );
-      setCollapsedStates(initialCollapsedStates);
+        }, {});
+
+        // Then populate with actual items
+        const groupedData = items.reduce((acc, item) => {
+          const type = item.type.toLowerCase();
+          if (acc.hasOwnProperty(type)) {
+            acc[type].push(item);
+          } else {
+            acc[type] = [item];
+          }
+          return acc;
+        }, initialGroups);
+
+        setItemTypes(types.map((t) => t.name.toLowerCase()));
+        setGroupedItems(groupedData);
+
+        // Initialize collapsed states for all types
+        const initialCollapsedStates = types.reduce((acc, { name }) => {
+          acc[name.toLowerCase()] = true;
+          return acc;
+        }, {});
+        setCollapsedStates(initialCollapsedStates);
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      }
     };
 
-    fetchItemGoals();
+    fetchData();
   }, []);
 
   const handleToggleCollapse = (type) => {
@@ -88,15 +106,17 @@ export default function ProcessedScraps() {
 
     setGroupedItems((prev) => {
       const updated = { ...prev };
-      updated[selectedItem.type] = updated[selectedItem.type].map((item) =>
-        item.id === selectedItem.id
-          ? {
-              ...item,
-              goal_quantity: formData.goalQuantity,
-              price: formData.pricePerQuantity,
-            }
-          : item
-      );
+      if (updated[selectedItem.type]) {
+        updated[selectedItem.type] = updated[selectedItem.type].map((item) =>
+          item.id === selectedItem.id
+            ? {
+                ...item,
+                goal_quantity: formData.goalQuantity,
+                price: formData.pricePerQuantity,
+              }
+            : item
+        );
+      }
       return updated;
     });
 
@@ -105,98 +125,108 @@ export default function ProcessedScraps() {
   };
 
   return (
-    <div className="w-[354px] h-[79vh] bg-white rounded-2xl border-[0.5px]">
+    <div className="w-[354px] h-[79vh] bg-white rounded-2xl border-[0.5px] relative">
       <div>
         <p className="p-6 ml-1 font-[500] text-[1.25rem]">
           All Processed Scraps
         </p>
       </div>
 
-      {Object.entries(groupedItems).map(([type, items]) => (
-        <div key={type}>
-          <div
-            className={`flex bg-green-50 justify-between ${
-              !collapsedStates[type]
-                ? "border-t-2 border-b-2 border-gray-200"
-                : ""
-            }`}
-          >
+      <div className="h-[70vh] overflow-y-auto">
+        {itemTypes.map((type) => (
+          <div key={type} className="mb-2">
             <div
-              className="px-6 py-3 flex items-center cursor-pointer"
-              onClick={() => handleToggleCollapse(type)}
+              className={`flex bg-green-50 justify-between ${
+                !collapsedStates[type]
+                  ? "border-t-2 border-b-2 border-gray-200"
+                  : ""
+              }`}
             >
-              {collapsedStates[type] ? (
-                <LiaGreaterThanSolid />
-              ) : (
-                <LiaEqualsSolid />
-              )}
-              &nbsp; &nbsp;
-              <p className="font-medium text-[1rem]">{type}</p>
+              <div
+                className="px-6 py-3 flex items-center cursor-pointer"
+                onClick={() => handleToggleCollapse(type)}
+              >
+                {collapsedStates[type] ? (
+                  <LiaGreaterThanSolid />
+                ) : (
+                  <LiaEqualsSolid />
+                )}
+                &nbsp; &nbsp;
+                <p className="font-medium text-[1rem]">
+                  {type.replace(/\b\w/g, (char) => char.toUpperCase())}
+                </p>
+              </div>
+              <div className="text-[1.7rem] text-green-600 flex items-center px-5">
+                <BsFillPlusSquareFill />
+              </div>
             </div>
-            <div className="text-[1.7rem] text-green-600 flex items-center px-5">
-              <BsFillPlusSquareFill />
-            </div>
-          </div>
 
-          <div
-            style={{
-              maxHeight: collapsedStates[type] ? "0" : "1000px",
-              overflow: "hidden",
-              transition: "max-height 0.3s ease-in-out",
-            }}
-          >
-            {!collapsedStates[type] &&
-              items.map((item) => (
-                <div
-                  key={item.id}
-                  className="pl-6 pr-3 py-2 mt-2 flex justify-between hover:border-gray-500 cursor-pointer"
-                  onClick={() => handleItemClick(item)}
-                >
-                  <div className="flex">
-                    <div>
-                      <Image
-                        src={item.image}
-                        width={50}
-                        height={50}
-                        alt={item.item}
-                      />
-                    </div>
-                    <div className="ml-3 items-center">
-                      <p className="font-semibold">
-                        {item.item.replace(/\b\w/g, (char) =>
-                          char.toUpperCase()
-                        )}
-                      </p>
-                      <p className="pt-1 font-[480] text-sm text-gray-500">
-                        ₱ {item.price || 0} / kg
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-center">
-                    <div>
-                      <div className="flex items-center text-xs mb-2 justify-end">
-                        <p>0 kg / {item.goal_quantity} kg</p>
+            <div
+              style={{
+                maxHeight: collapsedStates[type] ? "0" : "1000px",
+                overflow: "hidden",
+                transition: "max-height 0.3s ease-in-out",
+              }}
+            >
+              {!collapsedStates[type] &&
+                (groupedItems[type]?.length > 0 ? (
+                  groupedItems[type].map((item) => (
+                    <div
+                      key={item.id}
+                      className="pl-6 pr-3 py-2 mt-2 flex justify-between hover:border-gray-500 cursor-pointer"
+                      onClick={() => handleItemClick(item)}
+                    >
+                      <div className="flex">
+                        <div>
+                          <Image
+                            src={item.image}
+                            width={50}
+                            height={50}
+                            alt={item.item}
+                          />
+                        </div>
+                        <div className="ml-3 items-center">
+                          <p className="font-semibold">
+                            {item.item.replace(/\b\w/g, (char) =>
+                              char.toUpperCase()
+                            )}
+                          </p>
+                          <p className="pt-1 font-[480] text-sm text-gray-500">
+                            ₱ {item.price || 0} / kg
+                          </p>
+                        </div>
                       </div>
-                      <div className="flex items-end">
-                        {[...Array(12)].map((_, i) => (
-                          <div
-                            key={i}
-                            className={`h-[16px] w-[5px] ${
-                              i < 0 ? "bg-green-600" : "bg-[#D9D9D9]"
-                            } rounded-2xl ${i < 11 ? "mr-1" : ""}`}
-                          ></div>
-                        ))}
+                      <div className="flex items-center">
+                        <div>
+                          <div className="flex items-center text-xs mb-2 justify-end">
+                            <p>0 kg / {item.goal_quantity} kg</p>
+                          </div>
+                          <div className="flex items-end">
+                            {[...Array(12)].map((_, i) => (
+                              <div
+                                key={i}
+                                className={`h-[16px] w-[5px] ${
+                                  i < 0 ? "bg-green-600" : "bg-[#D9D9D9]"
+                                } rounded-2xl ${i < 11 ? "mr-1" : ""}`}
+                              ></div>
+                            ))}
+                          </div>
+                        </div>
+                        <div className="ml-2 text-gray-500 font-extralight">
+                          <SlOptionsVertical />
+                        </div>
                       </div>
                     </div>
-                    <div className="ml-2 text-gray-500 font-extralight">
-                      <SlOptionsVertical />
-                    </div>
+                  ))
+                ) : (
+                  <div className="pl-6 pr-3 py-4 text-gray-500 italic text-center">
+                    No items in this category
                   </div>
-                </div>
-              ))}
+                ))}
+            </div>
           </div>
-        </div>
-      ))}
+        ))}
+      </div>
 
       {isGoalItemModalOpen && selectedItem && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
