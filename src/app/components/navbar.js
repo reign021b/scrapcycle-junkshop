@@ -26,7 +26,7 @@ const Navbar = () => {
   const isActive = (path) => router.pathname === path;
 
   return (
-    <div className="flex items-center justify-between px-10 py-3">
+    <div className="flex items-center justify-between px-10 py-3 bg-white">
       <div className="relative inline-block w-[14.6rem]">
         <Image
           src="/scrapcycle-logo.png"

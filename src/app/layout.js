@@ -12,7 +12,7 @@ export default function RootLayout({ children }) {
       <head>
         <link rel="icon" href="/src/app/favicon.ico" />
       </head>
-      <body>
+      <body className="bg-[#F8F8F8]">
         <AuthGuard>{children}</AuthGuard>
       </body>
     </html>

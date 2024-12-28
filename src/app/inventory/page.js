@@ -31,7 +31,7 @@ const Inventory = () => {
   const [filteredLogs, setFilteredLogs] = useState([]);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [activeButton, setActiveButton] = useState("purchased");
-  
+
   const handleButtonClick = (button) => {
     if (activeButton !== button) {
       setActiveButton(button);
@@ -245,7 +245,7 @@ const Inventory = () => {
   return (
     <div>
       <Navbar />
-      <div className="bg-[#F8F8F8] h-auto">
+      <div className="bg-[#F8F8F8]">
         <div className="mx-12 max-w-[1340px] 2xl:mx-auto pt-3 pl-8">
           <p className="font-semibold text-[1.6rem]">Scrap Inventory</p>
           <p className="text-[#828282] text-sm font-medium">
