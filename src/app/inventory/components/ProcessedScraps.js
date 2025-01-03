@@ -8,9 +8,17 @@ import { SlOptionsVertical } from "react-icons/sl";
 export default function ProcessedScraps() {
   const [selectedItem, setSelectedItem] = useState(null);
   const [isGoalItemModalOpen, setIsGoalItemModalOpen] = useState(false);
+  const [isAddItemModalOpen, setIsAddItemModalOpen] = useState(false);
   const [formData, setFormData] = useState({
     pricePerQuantity: "",
     goalQuantity: "",
+  });
+  const [newItemData, setNewItemData] = useState({
+    item: "",
+    type: "",
+    price: "",
+    goalQuantity: "",
+    image: "",
   });
   const [collapsedStates, setCollapsedStates] = useState({});
   const [groupedItems, setGroupedItems] = useState({});
@@ -66,6 +74,56 @@ export default function ProcessedScraps() {
 
     fetchData();
   }, []);
+
+  const handleAddItemClick = (type) => {
+    setNewItemData((prev) => ({ ...prev, type: type }));
+    setIsAddItemModalOpen(true);
+  };
+
+  const handleNewItemChange = (e) => {
+    const { name, value } = e.target;
+    setNewItemData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleAddItemSubmit = async (e) => {
+    e.preventDefault();
+
+    const { data, error } = await supabase
+      .from("itemgoals")
+      .insert([
+        {
+          item: newItemData.item.toLowerCase(),
+          type: newItemData.type.toLowerCase(),
+          price: newItemData.price,
+          goal_quantity: newItemData.goalQuantity,
+          image: newItemData.image,
+        },
+      ])
+      .select();
+
+    if (error) {
+      console.error("Error adding new item:", error);
+      return;
+    }
+
+    // Update the local state with the new item
+    setGroupedItems((prev) => ({
+      ...prev,
+      [newItemData.type.toLowerCase()]: [
+        ...(prev[newItemData.type.toLowerCase()] || []),
+        data[0],
+      ],
+    }));
+
+    setIsAddItemModalOpen(false);
+    setNewItemData({
+      item: "",
+      type: "",
+      price: "",
+      goalQuantity: "",
+      image: "",
+    });
+  };
 
   const handleToggleCollapse = (type) => {
     setCollapsedStates((prev) => ({
@@ -156,7 +214,10 @@ export default function ProcessedScraps() {
                   {type.replace(/\b\w/g, (char) => char.toUpperCase())}
                 </p>
               </div>
-              <div className="text-[1.7rem] text-green-600 flex items-center px-5 cursor-pointer">
+              <div
+                className="text-[1.7rem] text-green-600 flex items-center px-5 cursor-pointer"
+                onClick={() => handleAddItemClick(type)}
+              >
                 <BsFillPlusSquareFill />
               </div>
             </div>
@@ -227,6 +288,85 @@ export default function ProcessedScraps() {
           </div>
         ))}
       </div>
+
+      {isAddItemModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center">
+          <div className="bg-white p-6 rounded-lg w-96 border">
+            <h2 className="text-xl text-center font-semibold mb-4">
+              Add New Item
+            </h2>
+            <form onSubmit={handleAddItemSubmit}>
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700">
+                  Item Name
+                </label>
+                <input
+                  type="text"
+                  name="item"
+                  value={newItemData.item}
+                  onChange={handleNewItemChange}
+                  className="mt-1 block w-full p-2 rounded-md border shadow-sm focus:border-green-500 focus:ring-green-500"
+                  required
+                />
+              </div>
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700">
+                  Price per kg
+                </label>
+                <input
+                  type="number"
+                  name="price"
+                  value={newItemData.price}
+                  onChange={handleNewItemChange}
+                  className="mt-1 block w-full rounded-md border p-2 shadow-sm focus:border-green-500 focus:ring-green-500"
+                  required
+                />
+              </div>
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700">
+                  Goal Quantity (kg)
+                </label>
+                <input
+                  type="number"
+                  name="goalQuantity"
+                  value={newItemData.goalQuantity}
+                  onChange={handleNewItemChange}
+                  className="mt-1 block w-full rounded-md  border p-2 shadow-sm focus:border-green-500 focus:ring-green-500"
+                  required
+                />
+              </div>
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700">
+                  Image URL
+                </label>
+                <input
+                  type="text"
+                  name="image"
+                  value={newItemData.image}
+                  onChange={handleNewItemChange}
+                  className="mt-1 block w-full rounded-md  border p-2 shadow-sm focus:border-green-500 focus:ring-green-500"
+                  required
+                />
+              </div>
+              <div className="flex justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => setIsAddItemModalOpen(false)}
+                  className="px-4 py-2 border p-2 rounded-md text-gray-700 hover:bg-gray-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
+                >
+                  Add Item
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {isGoalItemModalOpen && selectedItem && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
