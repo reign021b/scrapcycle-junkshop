@@ -156,7 +156,7 @@ export default function ProcessedScraps() {
                   {type.replace(/\b\w/g, (char) => char.toUpperCase())}
                 </p>
               </div>
-              <div className="text-[1.7rem] text-green-600 flex items-center px-5">
+              <div className="text-[1.7rem] text-green-600 flex items-center px-5 cursor-pointer">
                 <BsFillPlusSquareFill />
               </div>
             </div>
@@ -230,7 +230,7 @@ export default function ProcessedScraps() {
 
       {isGoalItemModalOpen && selectedItem && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-2xl p-6 w-1/4 relative">
+          <div className="bg-white rounded-2xl p-6 w-1/5 relative">
             <button
               className="absolute top-4 right-4 text-gray-600 hover:text-gray-800"
               onClick={() => {
