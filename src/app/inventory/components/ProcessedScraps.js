@@ -15,35 +15,36 @@ export default function ProcessedScraps() {
   });
   const [newItemData, setNewItemData] = useState({
     item: "",
-    type: "",
-    price: "",
+    typeId: "",
+    typeName: "",
     goalQuantity: "",
     image: "",
   });
   const [collapsedStates, setCollapsedStates] = useState({});
   const [groupedItems, setGroupedItems] = useState({});
   const [itemTypes, setItemTypes] = useState([]);
+  const [selectedType, setSelectedType] = useState(null);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // First, fetch all item types
         const { data: types, error: typesError } = await supabase
           .from("itemtypes")
-          .select("name");
+          .select("id, name");
 
         if (typesError) throw typesError;
 
-        // Then fetch all items with their goals
         const { data: items, error: itemsError } = await supabase.rpc(
           "get_itemgoals_for_inventory"
         );
 
         if (itemsError) throw itemsError;
 
-        // Initialize groups with all types, even empty ones
-        const initialGroups = types.reduce((acc, { name }) => {
-          acc[name.toLowerCase()] = [];
+        setItemTypes(types); // Store the full type objects
+
+        // Initialize groups with all types, including their IDs
+        const initialGroups = types.reduce((acc, { id, name }) => {
+          acc[name.toLowerCase()] = { id, items: [] };
           return acc;
         }, {});
 
@@ -51,14 +52,11 @@ export default function ProcessedScraps() {
         const groupedData = items.reduce((acc, item) => {
           const type = item.type.toLowerCase();
           if (acc.hasOwnProperty(type)) {
-            acc[type].push(item);
-          } else {
-            acc[type] = [item];
+            acc[type].items.push(item);
           }
           return acc;
         }, initialGroups);
 
-        setItemTypes(types.map((t) => t.name.toLowerCase()));
         setGroupedItems(groupedData);
 
         // Initialize collapsed states for all types
@@ -75,9 +73,19 @@ export default function ProcessedScraps() {
     fetchData();
   }, []);
 
-  const handleAddItemClick = (type) => {
-    setNewItemData((prev) => ({ ...prev, type: type }));
-    setIsAddItemModalOpen(true);
+  const handleAddItemClick = (typeName) => {
+    const typeData = itemTypes.find(
+      (t) => t.name.toLowerCase() === typeName.toLowerCase()
+    );
+    if (typeData) {
+      setNewItemData((prev) => ({
+        ...prev,
+        typeId: typeData.id,
+        typeName: typeData.name,
+      }));
+      setSelectedType(typeData);
+      setIsAddItemModalOpen(true);
+    }
   };
 
   const handleNewItemChange = (e) => {
@@ -88,41 +96,44 @@ export default function ProcessedScraps() {
   const handleAddItemSubmit = async (e) => {
     e.preventDefault();
 
+    const insertData = {
+      type: parseInt(newItemData.typeId), // Changed from type_id to type
+      item: newItemData.item.toLowerCase(),
+      goal_quantity: newItemData.goalQuantity, // This is already text in the table
+      image: newItemData.image,
+    };
+
+    console.log("Inserting data:", insertData);
+
     const { data, error } = await supabase
       .from("itemgoals")
-      .insert([
-        {
-          item: newItemData.item.toLowerCase(),
-          type: newItemData.type.toLowerCase(),
-          price: newItemData.price,
-          goal_quantity: newItemData.goalQuantity,
-          image: newItemData.image,
-        },
-      ])
+      .insert([insertData])
       .select();
 
     if (error) {
       console.error("Error adding new item:", error);
+      alert(`Failed to add item: ${error.message}`);
       return;
     }
 
     // Update the local state with the new item
     setGroupedItems((prev) => ({
       ...prev,
-      [newItemData.type.toLowerCase()]: [
-        ...(prev[newItemData.type.toLowerCase()] || []),
-        data[0],
-      ],
+      [newItemData.typeName.toLowerCase()]: {
+        ...prev[newItemData.typeName.toLowerCase()],
+        items: [...prev[newItemData.typeName.toLowerCase()].items, data[0]],
+      },
     }));
 
     setIsAddItemModalOpen(false);
     setNewItemData({
       item: "",
-      type: "",
-      price: "",
+      typeId: "",
+      typeName: "",
       goalQuantity: "",
       image: "",
     });
+    setSelectedType(null);
   };
 
   const handleToggleCollapse = (type) => {
@@ -133,7 +144,13 @@ export default function ProcessedScraps() {
   };
 
   const handleItemClick = (item) => {
-    setSelectedItem(item);
+    const typeName =
+      itemTypes.find((type) => type.id === item.type)?.name || "";
+
+    setSelectedItem({
+      ...item,
+      typeName,
+    });
     setFormData({
       pricePerQuantity: item.price || "",
       goalQuantity: item.goal_quantity || "",
@@ -192,31 +209,31 @@ export default function ProcessedScraps() {
 
       <div className="h-[70vh] overflow-y-auto">
         {itemTypes.map((type) => (
-          <div key={type} className="mb-2">
+          <div key={type.id} className="mb-2">
             <div
               className={`flex bg-green-50 justify-between ${
-                !collapsedStates[type]
+                !collapsedStates[type.name.toLowerCase()]
                   ? "border-t-2 border-b-2 border-gray-200"
                   : ""
               }`}
             >
               <div
                 className="px-6 py-3 flex items-center cursor-pointer"
-                onClick={() => handleToggleCollapse(type)}
+                onClick={() => handleToggleCollapse(type.name.toLowerCase())}
               >
-                {collapsedStates[type] ? (
+                {collapsedStates[type.name.toLowerCase()] ? (
                   <LiaGreaterThanSolid />
                 ) : (
                   <LiaEqualsSolid />
                 )}
                 &nbsp; &nbsp;
                 <p className="font-medium text-[1rem]">
-                  {type.replace(/\b\w/g, (char) => char.toUpperCase())}
+                  {type.name.replace(/\b\w/g, (char) => char.toUpperCase())}
                 </p>
               </div>
               <div
                 className="text-[1.7rem] text-green-600 flex items-center px-5 cursor-pointer"
-                onClick={() => handleAddItemClick(type)}
+                onClick={() => handleAddItemClick(type.name)}
               >
                 <BsFillPlusSquareFill />
               </div>
@@ -224,14 +241,16 @@ export default function ProcessedScraps() {
 
             <div
               style={{
-                maxHeight: collapsedStates[type] ? "0" : "1000px",
+                maxHeight: collapsedStates[type.name.toLowerCase()]
+                  ? "0"
+                  : "1000px",
                 overflow: "hidden",
                 transition: "max-height 0.3s ease-in-out",
               }}
             >
-              {!collapsedStates[type] &&
-                (groupedItems[type]?.length > 0 ? (
-                  groupedItems[type].map((item) => (
+              {!collapsedStates[type.name.toLowerCase()] &&
+                (groupedItems[type.name.toLowerCase()]?.items?.length > 0 ? (
+                  groupedItems[type.name.toLowerCase()].items.map((item) => (
                     <div
                       key={item.id}
                       className="pl-6 pr-3 py-2 mt-2 flex justify-between hover:border-gray-500 cursor-pointer"
@@ -298,6 +317,17 @@ export default function ProcessedScraps() {
             <form onSubmit={handleAddItemSubmit}>
               <div className="mb-4">
                 <label className="block text-sm font-medium text-gray-700">
+                  Type
+                </label>
+                <input
+                  type="text"
+                  value={selectedType?.name || ""}
+                  className="mt-1 block w-full p-2 rounded-md border bg-gray-50 shadow-sm"
+                  disabled
+                />
+              </div>
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700">
                   Item Name
                 </label>
                 <input
@@ -311,27 +341,14 @@ export default function ProcessedScraps() {
               </div>
               <div className="mb-4">
                 <label className="block text-sm font-medium text-gray-700">
-                  Price per kg
+                  Goal Quantity
                 </label>
                 <input
-                  type="number"
-                  name="price"
-                  value={newItemData.price}
-                  onChange={handleNewItemChange}
-                  className="mt-1 block w-full rounded-md border p-2 shadow-sm focus:border-green-500 focus:ring-green-500"
-                  required
-                />
-              </div>
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700">
-                  Goal Quantity (kg)
-                </label>
-                <input
-                  type="number"
+                  type="text" // Changed from number since the column is text
                   name="goalQuantity"
                   value={newItemData.goalQuantity}
                   onChange={handleNewItemChange}
-                  className="mt-1 block w-full rounded-md  border p-2 shadow-sm focus:border-green-500 focus:ring-green-500"
+                  className="mt-1 block w-full rounded-md border p-2 shadow-sm focus:border-green-500 focus:ring-green-500"
                   required
                 />
               </div>
@@ -344,7 +361,7 @@ export default function ProcessedScraps() {
                   name="image"
                   value={newItemData.image}
                   onChange={handleNewItemChange}
-                  className="mt-1 block w-full rounded-md  border p-2 shadow-sm focus:border-green-500 focus:ring-green-500"
+                  className="mt-1 block w-full rounded-md border p-2 shadow-sm focus:border-green-500 focus:ring-green-500"
                   required
                 />
               </div>
