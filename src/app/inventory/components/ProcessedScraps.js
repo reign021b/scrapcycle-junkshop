@@ -31,6 +31,13 @@ export default function ProcessedScraps() {
   const [junkshopId, setJunkshopId] = useState(null);
   const [branches, setBranches] = useState([]);
 
+  const handleImageUpload = (imageUrl) => {
+    setNewItemData((prev) => ({
+      ...prev,
+      image: imageUrl,
+    }));
+  };
+
   useEffect(() => {
     const fetchUserData = async () => {
       try {
@@ -361,6 +368,7 @@ export default function ProcessedScraps() {
         newItemData={newItemData}
         onSubmit={handleAddItemSubmit}
         onChange={handleNewItemChange}
+        onImageUpload={handleImageUpload}
         branches={branches}
       />
 

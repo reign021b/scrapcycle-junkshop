@@ -1,5 +1,7 @@
-import React from "react";
+// components/modals/ItemModal.js
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
+import { supabase } from "/utils/supabase/client";
 
 export const AddItemModal = ({
   isOpen,
@@ -8,8 +10,85 @@ export const AddItemModal = ({
   newItemData,
   onSubmit,
   onChange,
-  branches = [], // Add branches as a prop
+  onImageUpload,
+  branches = [],
 }) => {
+  const [preview, setPreview] = useState(null);
+  const [uploading, setUploading] = useState(false);
+
+  // Clear preview when modal closes
+  useEffect(() => {
+    if (!isOpen) {
+      handleClearForm();
+    }
+  }, [isOpen]);
+
+  const handleImageChange = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Preview
+    const objectUrl = URL.createObjectURL(file);
+    setPreview(objectUrl);
+
+    try {
+      setUploading(true);
+
+      // Generate unique filename
+      const fileExt = file.name.split(".").pop();
+      const fileName = `${Math.random()
+        .toString(36)
+        .slice(2)}_${Date.now()}.${fileExt}`;
+      const filePath = `${fileName}`;
+
+      // Upload to Supabase
+      const { data, error } = await supabase.storage
+        .from("items")
+        .upload(filePath, file);
+
+      if (error) throw error;
+
+      // Get public URL
+      const {
+        data: { publicUrl },
+      } = supabase.storage.from("items").getPublicUrl(filePath);
+
+      // Update parent component
+      onImageUpload(publicUrl);
+    } catch (error) {
+      console.error("Error uploading image:", error);
+      alert("Error uploading image");
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleClearForm = () => {
+    // Clear image preview and revoke object URL to prevent memory leaks
+    if (preview) {
+      URL.revokeObjectURL(preview);
+      setPreview(null);
+    }
+
+    // Clear file input
+    const fileInput = document.querySelector('input[type="file"]');
+    if (fileInput) {
+      fileInput.value = "";
+    }
+
+    // Reset form data in parent component
+    onChange({ target: { name: "item", value: "" } });
+    onChange({ target: { name: "branch", value: "" } });
+    onChange({ target: { name: "price", value: "" } });
+    onChange({ target: { name: "goalQuantity", value: "" } });
+    onImageUpload("");
+  };
+
+  const handleCancel = () => {
+    handleClearForm();
+    onClose();
+  };
+
   if (!isOpen) return null;
 
   return (
@@ -90,28 +169,42 @@ export const AddItemModal = ({
           </div>
           <div className="mb-4">
             <label className="block text-sm font-medium text-gray-700">
-              Image URL
+              Image Upload
             </label>
             <input
-              type="text"
-              name="image"
-              value={newItemData.image}
-              onChange={onChange}
-              className="mt-1 block w-full rounded-md border p-2 shadow-sm focus:border-green-500 focus:ring-green-500"
-              required
+              type="file"
+              accept="image/*"
+              onChange={handleImageChange}
+              className="mt-1 block w-full"
+              required={!newItemData.image}
             />
+            {uploading && (
+              <div className="mt-2 text-sm text-gray-500">Uploading...</div>
+            )}
+            {(preview || newItemData.image) && (
+              <div className="mt-2 flex items-center justify-center">
+                <Image
+                  src={preview || newItemData.image}
+                  alt="Preview"
+                  width={100}
+                  height={100}
+                  className="rounded-lg object-cover"
+                />
+              </div>
+            )}
           </div>
           <div className="flex justify-end gap-2">
             <button
               type="button"
-              onClick={onClose}
+              onClick={handleCancel}
               className="px-4 py-2 border p-2 rounded-lg text-gray-700 hover:bg-gray-50 text-sm"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm"
+              disabled={uploading}
+              className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm disabled:opacity-50"
             >
               Add Item
             </button>
