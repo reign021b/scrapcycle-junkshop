@@ -20,11 +20,54 @@ export default function ProcessedScraps() {
     typeName: "",
     goalQuantity: "",
     image: "",
+    branch: "",
+    price: "",
+    junkshop_id: "",
   });
   const [collapsedStates, setCollapsedStates] = useState({});
   const [groupedItems, setGroupedItems] = useState({});
   const [itemTypes, setItemTypes] = useState([]);
   const [selectedType, setSelectedType] = useState(null);
+  const [junkshopId, setJunkshopId] = useState(null);
+  const [branches, setBranches] = useState([]);
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        const {
+          data: { user },
+          error: userError,
+        } = await supabase.auth.getUser();
+        if (userError) throw userError;
+
+        const { data: operatorData, error: operatorError } = await supabase
+          .from("operators")
+          .select("id, junkshop_id")
+          .eq("id", user.id)
+          .single();
+
+        if (operatorError) throw operatorError;
+
+        const junkshopId = operatorData.junkshop_id;
+        setJunkshopId(junkshopId);
+        setNewItemData((prev) => ({ ...prev, junkshop_id: junkshopId }));
+
+        const { data: junkshopData, error: junkshopError } = await supabase
+          .from("junkshops")
+          .select("branches")
+          .eq("id", junkshopId)
+          .single();
+
+        if (junkshopError) throw junkshopError;
+
+        setBranches(junkshopData.branches || []);
+      } catch (error) {
+        console.error("Error fetching user data:", error);
+      }
+    };
+
+    fetchUserData();
+  }, []);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -41,15 +84,13 @@ export default function ProcessedScraps() {
 
         if (itemsError) throw itemsError;
 
-        setItemTypes(types); // Store the full type objects
+        setItemTypes(types);
 
-        // Initialize groups with all types, including their IDs
         const initialGroups = types.reduce((acc, { id, name }) => {
           acc[name.toLowerCase()] = { id, items: [] };
           return acc;
         }, {});
 
-        // Then populate with actual items
         const groupedData = items.reduce((acc, item) => {
           const type = item.type.toLowerCase();
           if (acc.hasOwnProperty(type)) {
@@ -60,7 +101,6 @@ export default function ProcessedScraps() {
 
         setGroupedItems(groupedData);
 
-        // Initialize collapsed states for all types
         const initialCollapsedStates = types.reduce((acc, { name }) => {
           acc[name.toLowerCase()] = true;
           return acc;
@@ -98,10 +138,13 @@ export default function ProcessedScraps() {
     e.preventDefault();
 
     const insertData = {
-      type: parseInt(newItemData.typeId), // Changed from type_id to type
+      type: parseInt(newItemData.typeId),
       item: newItemData.item.toLowerCase(),
-      goal_quantity: newItemData.goalQuantity, // This is already text in the table
+      goal_quantity: newItemData.goalQuantity,
       image: newItemData.image,
+      junkshop_id: newItemData.junkshop_id,
+      branch: newItemData.branch,
+      price: newItemData.price,
     };
 
     console.log("Inserting data:", insertData);
@@ -117,7 +160,6 @@ export default function ProcessedScraps() {
       return;
     }
 
-    // Update the local state with the new item
     setGroupedItems((prev) => ({
       ...prev,
       [newItemData.typeName.toLowerCase()]: {
@@ -133,6 +175,9 @@ export default function ProcessedScraps() {
       typeName: "",
       goalQuantity: "",
       image: "",
+      branch: "",
+      price: "",
+      junkshop_id: junkshopId,
     });
     setSelectedType(null);
   };
@@ -316,6 +361,7 @@ export default function ProcessedScraps() {
         newItemData={newItemData}
         onSubmit={handleAddItemSubmit}
         onChange={handleNewItemChange}
+        branches={branches}
       />
 
       <GoalItemModal

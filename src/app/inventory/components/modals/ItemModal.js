@@ -1,4 +1,3 @@
-// components/modals/ItemModal.js
 import React from "react";
 import Image from "next/image";
 
@@ -9,6 +8,7 @@ export const AddItemModal = ({
   newItemData,
   onSubmit,
   onChange,
+  branches = [], // Add branches as a prop
 }) => {
   if (!isOpen) return null;
 
@@ -39,6 +39,40 @@ export const AddItemModal = ({
               onChange={onChange}
               className="mt-1 block w-full p-2 rounded-md border shadow-sm focus:border-green-500 focus:ring-green-500"
               required
+            />
+          </div>
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700">
+              Branch
+            </label>
+            <select
+              name="branch"
+              value={newItemData.branch}
+              onChange={onChange}
+              className="mt-1 block w-full p-2 rounded-md border shadow-sm focus:border-green-500 focus:ring-green-500"
+              required
+            >
+              <option value="">Select Branch</option>
+              {branches.map((branch) => (
+                <option key={branch} value={branch}>
+                  {branch}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700">
+              Price (₱)
+            </label>
+            <input
+              type="number"
+              name="price"
+              value={newItemData.price}
+              onChange={onChange}
+              className="mt-1 block w-full p-2 rounded-md border shadow-sm focus:border-green-500 focus:ring-green-500"
+              required
+              min="0"
+              step="0.01"
             />
           </div>
           <div className="mb-4">
