@@ -236,9 +236,9 @@ const Shipment = () => {
                     </div>
                     <div className="ml-6 text-2xl">
                       {expandedRows.has(shipment.id) ? (
-                        <FaSortDown className="mb-3" />
-                      ) : (
                         <FaSortUp className="mt-3" />
+                      ) : (
+                        <FaSortDown className="mb-3" />
                       )}
                     </div>
                   </div>
