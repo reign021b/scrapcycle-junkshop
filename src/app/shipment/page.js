@@ -1,12 +1,128 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import Navbar from "../components/navbar";
 import { LuFilter, LuPlus } from "react-icons/lu";
 import { TbArrowsSort } from "react-icons/tb";
 import { FaSortDown, FaSortUp } from "react-icons/fa";
 
 const Shipment = () => {
+  const [selectedStatus, setSelectedStatus] = useState("DONE");
+  const [expandedRows, setExpandedRows] = useState(new Set());
+
+  // Sample data - you would replace this with your actual data
+  const shipments = [
+    {
+      id: "#1234FRDDE",
+      buyer: "Andy Martinez",
+      destination: "231 Dar Subdivision, Butuan City",
+      departure: { date: "2024-12-25", time: "4:26 PM" },
+      arrival: { date: "2024-12-25", time: "4:26 PM" },
+      cost: "₱ 1,500,000",
+      capital: "₱ 1,500,000",
+      total: "₱ 2,104,200",
+      profit: "₱ 604,200",
+      status: "DONE",
+      items: [
+        {
+          itemId: "#1234FRDDE",
+          item: "Copper",
+          capital: "₱ 1,500,000",
+          inQuan: "5,000 kgs",
+          outQuan: "5,010 kgs",
+          price: "₱ 420.00 / kg",
+          total: "₱ 2,104,200",
+          profit: "₱ 604,200",
+        },
+      ],
+    },
+    {
+      id: "#1234FRDDE",
+      buyer: "Andy Martinez",
+      destination: "231 Dar Subdivision, Butuan City",
+      departure: { date: "2024-12-25", time: "4:26 PM" },
+      arrival: { date: "2024-12-25", time: "4:26 PM" },
+      cost: "₱ 1,500,000",
+      capital: "₱ 1,500,000",
+      total: "₱ 2,104,200",
+      profit: "₱ 604,200",
+      status: "ONGOING",
+      items: [
+        {
+          itemId: "#1234FRDDE",
+          item: "Copper",
+          capital: "₱ 1,500,000",
+          inQuan: "5,000 kgs",
+          outQuan: "5,010 kgs",
+          price: "₱ 420.00 / kg",
+          total: "₱ 2,104,200",
+          profit: "₱ 604,200",
+        },
+      ],
+    },
+    {
+      id: "#1234FRDDE",
+      buyer: "Andy Martinez",
+      destination: "231 Dar Subdivision, Butuan City",
+      departure: { date: "2024-12-25", time: "4:26 PM" },
+      arrival: { date: "2024-12-25", time: "4:26 PM" },
+      cost: "₱ 1,500,000",
+      capital: "₱ 1,500,000",
+      total: "₱ 2,104,200",
+      profit: "₱ 604,200",
+      status: "CANCELLED",
+      items: [
+        {
+          itemId: "#1234FRDDE",
+          item: "Copper",
+          capital: "₱ 1,500,000",
+          inQuan: "5,000 kgs",
+          outQuan: "5,010 kgs",
+          price: "₱ 420.00 / kg",
+          total: "₱ 2,104,200",
+          profit: "₱ 604,200",
+        },
+      ],
+    },
+  ];
+
+  const toggleRowExpansion = (id) => {
+    setExpandedRows((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(id)) {
+        newSet.delete(id);
+      } else {
+        newSet.add(id);
+      }
+      return newSet;
+    });
+  };
+
+  const getStatusStyles = (status) => {
+    switch (status) {
+      case "DONE":
+        return {
+          badge: "bg-[#D9FFE9] text-[#27AE60]",
+          row: "bg-[#EDFFF4]",
+        };
+      case "ONGOING":
+        return {
+          badge: "bg-yellow-100 text-yellow-600",
+          row: "bg-yellow-50",
+        };
+      case "CANCELLED":
+        return {
+          badge: "bg-red-100 text-red-600",
+          row: "bg-red-50",
+        };
+      default:
+        return {
+          badge: "",
+          row: "bg-white",
+        };
+    }
+  };
+
   return (
     <div>
       <Navbar />
@@ -15,7 +131,7 @@ const Shipment = () => {
           <p className="text-[1.6rem] font-semibold pt-5 pl-8">
             Sales & Shipment
           </p>
-          <p className="text-sm  text-[#828282] font-semibold pl-8">
+          <p className="text-sm text-[#828282] font-semibold pl-8">
             Purchases / Inventory
           </p>
         </div>
@@ -23,25 +139,33 @@ const Shipment = () => {
           <div className="px-6 pt-5 pb-2 flex justify-between">
             <div className="text-lg font-bold">Shipment Logs</div>
             <div className="flex text-xs items-center pb-2">
-              <div className="mr-14 ml-40 font-[800] text-green-600 cursor-pointer">
-                DONE
-              </div>
-              <div className="mr-14 text-gray-700 cursor-pointer">ONGOING</div>
-              <div className="text-gray-700 cursor-pointer">CANCELLED</div>
+              {["DONE", "ONGOING", "CANCELLED"].map((status) => (
+                <button
+                  key={status}
+                  onClick={() => setSelectedStatus(status)}
+                  className={`mr-14 ${
+                    selectedStatus === status
+                      ? "text-green-600 font-[800]"
+                      : "text-gray-700"
+                  } ${status === "CANCELLED" ? "mr-0" : ""}`}
+                >
+                  {status}
+                </button>
+              ))}
             </div>
-            <div className="flex items-center font-medium ">
+            <div className="flex items-center font-medium">
               <div className="relative">
                 <div className="mr-8 flex items-center font-medium cursor-pointer p-2 rounded-xl">
                   <span className="text-lg">
                     <LuFilter />
-                  </span>{" "}
+                  </span>
                   <div className="ml-2 text-sm">Filter</div>
                 </div>
               </div>
               <div className="mr-8 flex items-center font-medium cursor-pointer">
                 <span className="text-lg">
                   <TbArrowsSort />
-                </span>{" "}
+                </span>
                 <div className="ml-2 text-sm">Sort by</div>
               </div>
               <div className="mr-6 border-[0.5px] border-r-0 h-10"></div>
@@ -72,55 +196,93 @@ const Shipment = () => {
           </div>
 
           {/* Rows of Data */}
-          <div className="grid grid-cols-10 pl-6 text-xs text-gray-500 bg-[#EDFFF4] border border-t-0 border-x-0 py-3 pr-6 items-center">
-            <div>#1234FRDDE</div>
-            <div className="text-black">Andy Martinez</div>
-            <div className="text-black">231 Dar Subdivision, Butuan City</div>
-            <div>
-              <div className="text-black">2024-12-25</div>
-              <div className="text-gray-500">4:26 PM</div>
-            </div>
-            <div>
-              <div className="text-black">2024-12-25</div>
-              <div className="text-gray-500">4:26 PM</div>
-            </div>
-            <div className="text-black">₱ 1,500,000</div>
-            <div className="text-black">₱ 1,500,000</div>
-            <div className="text-black">₱ 2,104,200</div>
-            <div className="text-black">₱ 604,200</div>
-            <div className="flex items-center justify-center text-center">
-              <div className="px-5 rounded-full bg-[#D9FFE9] text-[#27AE60] font-semibold py-1">
-                DONE
-              </div>
-              <div className="ml-6 text-2xl pt-3">
-                <FaSortUp />
-              </div>
-            </div>
-          </div>
-          <div className="grid grid-cols-8 pl-6 text-xs text-gray-500 border border-t-0 border-x-0 py-1 pr-6 items-center">
-            <div>ITEM ID</div>
-            <div>ITEM</div>
-            <div>CAPITAL</div>
-            <div>IN-QUAN.</div>
-            <div>OUT-QUAN.</div>
-            <div>PRICE</div>
-            <div>TOTAL</div>
-            <div className="text-center px-5">
-              <div className="pr-4">PROFIT</div>
-            </div>
-          </div>
-          <div className="grid grid-cols-8 pl-6 text-xs border border-t-0 border-x-0 py-4 pr-6 items-center">
-            <div className="text-gray-400">#1234FRDDE</div>
-            <div>Copper</div>
-            <div>₱ 1,500,000</div>
-            <div>5,000 kgs</div>
-            <div className="text-[#27AE60] font-medium">5,010 kgs</div>
-            <div>₱ 420.00 / kg</div>
-            <div>₱ 2,104,200</div>
-            <div className="text-center px-5">
-              <div className="pr-4 text-[#27AE60] font-medium">₱ 604,200</div>
-            </div>
-          </div>
+          {shipments
+            .filter(
+              (shipment) =>
+                selectedStatus === "ALL" || shipment.status === selectedStatus
+            )
+            .map((shipment) => (
+              <React.Fragment key={shipment.id}>
+                <div
+                  onClick={() => toggleRowExpansion(shipment.id)}
+                  className={`grid grid-cols-10 pl-6 text-xs text-gray-500 ${
+                    getStatusStyles(shipment.status).row
+                  } border border-t-0 border-x-0 py-3 pr-6 items-center cursor-pointer`}
+                >
+                  <div>{shipment.id}</div>
+                  <div className="text-black">{shipment.buyer}</div>
+                  <div className="text-black">{shipment.destination}</div>
+                  <div>
+                    <div className="text-black">{shipment.departure.date}</div>
+                    <div className="text-gray-500">
+                      {shipment.departure.time}
+                    </div>
+                  </div>
+                  <div>
+                    <div className="text-black">{shipment.arrival.date}</div>
+                    <div className="text-gray-500">{shipment.arrival.time}</div>
+                  </div>
+                  <div className="text-black">{shipment.cost}</div>
+                  <div className="text-black">{shipment.capital}</div>
+                  <div className="text-black">{shipment.total}</div>
+                  <div className="text-black">{shipment.profit}</div>
+                  <div className="flex items-center justify-center text-center">
+                    <div
+                      className={`px-5 rounded-full ${
+                        getStatusStyles(shipment.status).badge
+                      } font-semibold py-1`}
+                    >
+                      {shipment.status}
+                    </div>
+                    <div className="ml-6 text-2xl">
+                      {expandedRows.has(shipment.id) ? (
+                        <FaSortDown className="mb-3" />
+                      ) : (
+                        <FaSortUp className="mt-3" />
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {expandedRows.has(shipment.id) && (
+                  <>
+                    <div className="grid grid-cols-8 pl-6 text-xs text-gray-500 border border-t-0 border-x-0 py-1 pr-6 items-center">
+                      <div>ITEM ID</div>
+                      <div>ITEM</div>
+                      <div>CAPITAL</div>
+                      <div>IN-QUAN.</div>
+                      <div>OUT-QUAN.</div>
+                      <div>PRICE</div>
+                      <div>TOTAL</div>
+                      <div className="text-center px-5">
+                        <div className="pr-4">PROFIT</div>
+                      </div>
+                    </div>
+                    {shipment.items.map((item, index) => (
+                      <div
+                        key={index}
+                        className="grid grid-cols-8 pl-6 text-xs border border-t-0 border-x-0 py-4 pr-6 items-center"
+                      >
+                        <div className="text-gray-400">{item.itemId}</div>
+                        <div>{item.item}</div>
+                        <div>{item.capital}</div>
+                        <div>{item.inQuan}</div>
+                        <div className="text-[#27AE60] font-medium">
+                          {item.outQuan}
+                        </div>
+                        <div>{item.price}</div>
+                        <div>{item.total}</div>
+                        <div className="text-center px-5">
+                          <div className="pr-4 text-[#27AE60] font-medium">
+                            {item.profit}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </>
+                )}
+              </React.Fragment>
+            ))}
         </div>
       </div>
     </div>
