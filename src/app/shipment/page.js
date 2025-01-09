@@ -145,7 +145,11 @@ const Shipment = () => {
                   onClick={() => setSelectedStatus(status)}
                   className={`mr-14 ${
                     selectedStatus === status
-                      ? "text-green-600 font-[800]"
+                      ? status === "DONE"
+                        ? "text-green-600 font-[800]"
+                        : status === "ONGOING"
+                        ? "text-yellow-500 font-[800]"
+                        : "text-red-500 font-[800]"
                       : "text-gray-700"
                   } ${status === "CANCELLED" ? "mr-0" : ""}`}
                 >
@@ -153,6 +157,7 @@ const Shipment = () => {
                 </button>
               ))}
             </div>
+
             <div className="flex items-center font-medium">
               <div className="relative">
                 <div className="mr-8 flex items-center font-medium cursor-pointer p-2 rounded-xl">
