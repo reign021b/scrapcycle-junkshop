@@ -15,6 +15,7 @@ import { CgTrash } from "react-icons/cg";
 import { ImMakeGroup } from "react-icons/im";
 import AddPurchaseModal from "./components/AddPurchaseModal";
 import { LiaCitySolid } from "react-icons/lia";
+import ProcessedItemsList from "./components/ProcessedItemsList";
 
 const Inventory = () => {
   const router = useRouter();
@@ -31,6 +32,7 @@ const Inventory = () => {
   const [filteredLogs, setFilteredLogs] = useState([]);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [activeButton, setActiveButton] = useState("purchased");
+  const [processedItems, setProcessedItems] = useState([]);
 
   const handleButtonClick = (button) => {
     if (activeButton !== button) {
@@ -344,71 +346,6 @@ const Inventory = () => {
               </div>
             </div>
 
-            <div
-              className={`px-6 py-3 justify-between items-center mr-3 ${
-                activeButton === "processed" ? "flex" : "hidden"
-              }`}
-            >
-              <div className="py-3 ml-1 font-[500] text-[1.25rem] ">
-                Processed Items Logs
-              </div>
-              <div className="flex justify-between items-center">
-                <div className="flex items-center mr-4">
-                  <div className="text-xl">
-                    <LiaCitySolid />
-                  </div>
-                  <select
-                    value={selectedCity}
-                    onChange={(e) => {
-                      setSelectedCity(e.target.value);
-                      setIsFilterOpen(false);
-                    }}
-                    className="w-full py-2 pl-1 pr-2 outline-none cursor-pointer rounded-full text-center text-sm font-medium appearance-none"
-                    style={{
-                      WebkitAppearance: "none",
-                      MozAppearance: "none",
-                      appearance: "none",
-                    }}
-                  >
-                    <option value="All">All Cities</option>
-                    {cities.map((city) => (
-                      <option key={city} value={city}>
-                        {city}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="relative">
-                  <div
-                    className="mr-8 flex items-center font-medium cursor-pointer p-2 rounded-xl"
-                    onClick={() => setIsFilterOpen(!isFilterOpen)}
-                  >
-                    <span className="text-lg">
-                      <LuFilter />
-                    </span>{" "}
-                    <div className="ml-2 text-sm">Filter</div>
-                  </div>
-                </div>
-                <div className="mr-8 flex items-center font-medium cursor-pointer">
-                  <span className="text-lg">
-                    <TbArrowsSort />
-                  </span>{" "}
-                  <div className="ml-2 text-sm">Sort by</div>
-                </div>
-                <div className="mr-6 border-[0.5px] border-r-0 h-10"></div>
-                <div
-                  onClick={openInsertModal}
-                  className="bg-[#27AE60] text-white pl-4 pr-3 py-[6px] font-[450] text-sm flex items-center rounded-lg cursor-pointer"
-                >
-                  <div className="mr-2 text-sm">Insert</div>
-                  <div className="text-xl text-white flex items-center">
-                    <LuPlus />
-                  </div>
-                </div>
-              </div>
-            </div>
-
             {/* Insert Modal */}
             <AddPurchaseModal
               isOpen={isInsertModalOpen}
@@ -430,19 +367,6 @@ const Inventory = () => {
               <div className="text-xs text-center">TOTAL</div>
               <div className="col-span-1 text-xs text-center">SELLER</div>
               <div className="col-span-2 text-xs text-center">CHANNEL</div>
-            </div>
-
-            <div
-              className={`grid grid-cols-5 w-full items-center justify-between pl-8 pr-[2.5rem]  2xl:pr-[3.5rem] bg-gray-50 h-[3rem] text-gray-500 border border-x-0 font-medium ${
-                activeButton === "processed" ? "flex" : "hidden"
-              }`}
-            >
-              <div className="text-xs text-center">PROCESS ID</div>
-              <div className="col-span-2 text-xs text-center">
-                DATE AND TIME
-              </div>
-              <div className="text-xs text-left">ITEM</div>
-              <div className="text-xs text-center">QUANTITY</div>
             </div>
 
             <div
@@ -669,6 +593,15 @@ const Inventory = () => {
                 </div>
               )}
             </div>
+
+            <ProcessedItemsList
+              activeButton={activeButton}
+              selectedCity={selectedCity}
+              setSelectedCity={setSelectedCity}
+              setIsFilterOpen={setIsFilterOpen}
+              cities={cities}
+              processedItems={processedItems}
+            />
           </div>
         </div>
       </div>
