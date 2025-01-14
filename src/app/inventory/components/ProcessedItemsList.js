@@ -10,11 +10,9 @@ import ProcessItemsModal from "./modals/ProcessItemsModal";
 const ProcessedItemsList = ({ activeButton }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [processedItems, setProcessedItems] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [junkshopId, setJunkshopId] = useState(null);
 
   const fetchProcessedItems = async () => {
-    setLoading(true);
     try {
       const {
         data: { user },
@@ -43,15 +41,13 @@ const ProcessedItemsList = ({ activeButton }) => {
       setProcessedItems(data || []);
     } catch (error) {
       console.error("Error fetching processed items:", error);
-    } finally {
-      setLoading(false);
     }
   };
 
   // Initial fetch
   useEffect(() => {
     fetchProcessedItems();
-  }, []);
+  }, [isModalOpen]);
 
   // Set up real-time subscription
   useEffect(() => {
@@ -63,9 +59,9 @@ const ProcessedItemsList = ({ activeButton }) => {
       .on(
         "postgres_changes",
         {
-          event: "*", // Listen to all events (INSERT, UPDATE, DELETE)
+          event: "*",
           schema: "public",
-          table: "processed_items",
+          table: "processeditems",
           filter: `junkshop_id=eq.${junkshopId}`,
         },
         () => {
@@ -175,59 +171,59 @@ const ProcessedItemsList = ({ activeButton }) => {
           activeButton === "processed" ? "block" : "hidden"
         }`}
       >
-        {loading ? (
-          <div className="text-center py-4">Loading...</div>
-        ) : (
-          <div className="overflow-y-auto max-h-[60vh]">
-            {" "}
-            {/* Added scrollable container */}
-            {processedItems.map((item, index) => {
-              const formattedDate = formatDate(item.date_added);
-              const prClass =
-                processedItems.length > 10 ? "pr-[2.5rem]" : "pr-[3.5rem]";
-              return (
-                <div
-                  key={item.process_id}
-                  className={`grid grid-cols-4 w-full items-center justify-between pl-8 ${prClass} h-[3.5rem] border border-x-0 border-t-0 font-[470] hover:shadow-md`}
-                >
-                  <div className="text-[0.7rem] text-center">
-                    #{item.process_id}
-                  </div>
-                  <div className="text-[0.7rem] text-center">
-                    <div>{formattedDate.date}</div>
-                    <div>{formattedDate.time}</div>
-                  </div>
-                  <div className="col-span-1 text-[0.7rem] text-left w-full">
-                    <div className="flex items-center">
+        <div className="overflow-y-auto max-h-[60vh]">
+          {" "}
+          {/* Added scrollable container */}
+          {processedItems.map((item, index) => {
+            const formattedDate = formatDate(item.date_added);
+            const prClass =
+              processedItems.length > 10 ? "pr-[2.5rem]" : "pr-[3.5rem]";
+            return (
+              <div
+                key={item.process_id}
+                className={`grid grid-cols-4 w-full items-center justify-between pl-8 ${prClass} h-[3.5rem] border border-x-0 border-t-0 font-[470] hover:shadow-md`}
+              >
+                <div className="text-[0.7rem] text-center">
+                  #{item.process_id}
+                </div>
+                <div className="text-[0.7rem] text-center">
+                  <div>{formattedDate.date}</div>
+                  <div>{formattedDate.time}</div>
+                </div>
+                <div className="col-span-1 text-[0.7rem] text-left w-full">
+                  <div className="flex items-center">
+                    <div>
+                      <Image
+                        src={item.image ?? ""}
+                        width={27}
+                        height={27}
+                        alt="item image"
+                      />
+                    </div>
+                    <div className="ml-2">
                       <div>
-                        <Image
-                          src={item.image ?? ""}
-                          width={27}
-                          height={27}
-                          alt="item image"
-                        />
+                        {item.item.replace(/\b\w/g, (char) =>
+                          char.toUpperCase()
+                        )}
                       </div>
-                      <div className="ml-2">
-                        <div>{item.item}</div>
-                        <div className="flex w-full items-center">
-                          <div>
-                            <ImMakeGroup />
-                          </div>
-                          <div className="text-[0.65rem] ml-[2px]">
-                            {item.type}
-                          </div>
+                      <div className="flex w-full items-center">
+                        <div>
+                          <ImMakeGroup />
+                        </div>
+                        <div className="text-[0.65rem] ml-[2px]">
+                          {item.type}
                         </div>
                       </div>
                     </div>
                   </div>
-                  <div className="text-[0.7rem] text-center">
-                    {item.quantity} kg
-                  </div>
                 </div>
-              );
-            })}
-          </div>
-        )}
+                <div className="text-[0.7rem] text-center">
+                  {item.quantity} kg
+                </div>
+              </div>
+            );
+          })}
+        </div>
       </div>
     </div>
   );
