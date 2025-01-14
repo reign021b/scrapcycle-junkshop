@@ -594,14 +594,7 @@ const Inventory = () => {
               )}
             </div>
 
-            <ProcessedItemsList
-              activeButton={activeButton}
-              selectedCity={selectedCity}
-              setSelectedCity={setSelectedCity}
-              setIsFilterOpen={setIsFilterOpen}
-              cities={cities}
-              processedItems={processedItems}
-            />
+            <ProcessedItemsList activeButton={activeButton} />
           </div>
         </div>
       </div>

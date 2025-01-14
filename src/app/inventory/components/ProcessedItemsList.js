@@ -1,20 +1,101 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { supabase } from "/utils/supabase/client";
 import { LuFilter, LuPlus } from "react-icons/lu";
 import { TbArrowsSort } from "react-icons/tb";
 import { LiaCitySolid } from "react-icons/lia";
-import Image from "next/image";
 import { ImMakeGroup } from "react-icons/im";
+import Image from "next/image";
 import ProcessItemsModal from "./modals/ProcessItemsModal";
 
-const ProcessedItemsList = ({
-  activeButton,
-  selectedCity,
-  setSelectedCity,
-  setIsFilterOpen,
-  cities,
-  processedItems = [],
-}) => {
+const ProcessedItemsList = ({ activeButton }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [processedItems, setProcessedItems] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [junkshopId, setJunkshopId] = useState(null);
+
+  const fetchProcessedItems = async () => {
+    setLoading(true);
+    try {
+      const {
+        data: { user },
+        error: authError,
+      } = await supabase.auth.getUser();
+
+      if (authError) throw authError;
+      if (!user) throw new Error("No authenticated user");
+
+      const { data: operatorData, error: operatorError } = await supabase
+        .from("operators")
+        .select("junkshop_id")
+        .eq("id", user.id)
+        .single();
+
+      if (operatorError) throw operatorError;
+
+      setJunkshopId(operatorData.junkshop_id);
+
+      const { data, error } = await supabase
+        .rpc("get_processed_items")
+        .eq("junkshop_id", operatorData.junkshop_id);
+
+      if (error) throw error;
+
+      setProcessedItems(data || []);
+    } catch (error) {
+      console.error("Error fetching processed items:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Initial fetch
+  useEffect(() => {
+    fetchProcessedItems();
+  }, []);
+
+  // Set up real-time subscription
+  useEffect(() => {
+    if (!junkshopId) return;
+
+    // Subscribe to the processed_items table
+    const subscription = supabase
+      .channel("processed_items_changes")
+      .on(
+        "postgres_changes",
+        {
+          event: "*", // Listen to all events (INSERT, UPDATE, DELETE)
+          schema: "public",
+          table: "processed_items",
+          filter: `junkshop_id=eq.${junkshopId}`,
+        },
+        () => {
+          // Refetch the data when any change occurs
+          fetchProcessedItems();
+        }
+      )
+      .subscribe();
+
+    // Cleanup subscription on unmount
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [junkshopId]);
+
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    return {
+      date: date.toLocaleDateString("en-US", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+      }),
+      time: date.toLocaleTimeString("en-US", {
+        hour: "numeric",
+        minute: "2-digit",
+        hour12: true,
+      }),
+    };
+  };
 
   return (
     <div className="w-full">
@@ -33,11 +114,6 @@ const ProcessedItemsList = ({
               <LiaCitySolid />
             </div>
             <select
-              value={selectedCity}
-              onChange={(e) => {
-                setSelectedCity(e.target.value);
-                setIsFilterOpen(false);
-              }}
               className="w-full py-2 pl-1 pr-2 outline-none cursor-pointer rounded-full text-center text-sm font-medium appearance-none"
               style={{
                 WebkitAppearance: "none",
@@ -50,10 +126,7 @@ const ProcessedItemsList = ({
           </div>
 
           <div className="relative">
-            <div
-              className="mr-8 flex items-center font-medium cursor-pointer p-2 rounded-xl"
-              onClick={() => setIsFilterOpen(!isFilterOpen)}
-            >
+            <div className="mr-8 flex items-center font-medium cursor-pointer p-2 rounded-xl">
               <span className="text-lg">
                 <LuFilter />
               </span>
@@ -86,12 +159,12 @@ const ProcessedItemsList = ({
 
       {/* Column Headers */}
       <div
-        className={`grid grid-cols-5 w-full items-center justify-between pl-8 pr-[2.5rem] 2xl:pr-[3.5rem] bg-gray-50 h-[3rem] text-gray-500 border border-x-0 font-medium ${
+        className={`grid grid-cols-4 w-full items-center justify-between pl-8 pr-[2.5rem] 2xl:pr-[3.5rem] bg-gray-50 h-[3rem] text-gray-500 border border-x-0 font-medium ${
           activeButton === "processed" ? "flex" : "hidden"
         }`}
       >
         <div className="text-xs text-center">PROCESS ID</div>
-        <div className="col-span-2 text-xs text-center">DATE AND TIME</div>
+        <div className="text-xs text-center">DATE AND TIME</div>
         <div className="text-xs text-left">ITEM</div>
         <div className="text-xs text-center">QUANTITY</div>
       </div>
@@ -102,53 +175,59 @@ const ProcessedItemsList = ({
           activeButton === "processed" ? "block" : "hidden"
         }`}
       >
-        {processedItems.map((item) => (
-          <div
-            key={item.process_id}
-            className="grid grid-cols-5 w-full items-center justify-between pl-8 pr-[2.5rem] h-[4rem] border border-x-0 border-t-0 font-[470] hover:shadow-md"
-          >
-            <div className="text-[0.7rem] text-center">#{item.process_id}</div>
-            <div className="col-span-2 text-[0.7rem] text-center">
-              <div>
-                {new Date(item.processed_at).toLocaleDateString("en-US", {
-                  day: "2-digit",
-                  month: "short",
-                  year: "numeric",
-                })}
-              </div>
-              <div>
-                {new Date(item.processed_at).toLocaleTimeString("en-US", {
-                  hour: "numeric",
-                  minute: "numeric",
-                  hour12: true,
-                })}
-              </div>
-            </div>
-            <div className="text-[0.7rem] text-left">
-              <div className="flex items-center">
-                <div>
-                  <Image
-                    src={item.image ?? ""}
-                    width={27}
-                    height={27}
-                    alt="item image"
-                  />
-                </div>
-                <div className="ml-2">
-                  <div>{item.item}</div>
-                  <div className="flex items-center">
-                    <ImMakeGroup />
-                    <span className="text-[0.65rem] ml-[2px]">{item.type}</span>
+        {loading ? (
+          <div className="text-center py-4">Loading...</div>
+        ) : (
+          <div className="overflow-y-auto max-h-[60vh]">
+            {" "}
+            {/* Added scrollable container */}
+            {processedItems.map((item, index) => {
+              const formattedDate = formatDate(item.date_added);
+              const prClass =
+                processedItems.length > 10 ? "pr-[2.5rem]" : "pr-[3.5rem]";
+              return (
+                <div
+                  key={item.process_id}
+                  className={`grid grid-cols-4 w-full items-center justify-between pl-8 ${prClass} h-[3.5rem] border border-x-0 border-t-0 font-[470] hover:shadow-md`}
+                >
+                  <div className="text-[0.7rem] text-center">
+                    #{item.process_id}
+                  </div>
+                  <div className="text-[0.7rem] text-center">
+                    <div>{formattedDate.date}</div>
+                    <div>{formattedDate.time}</div>
+                  </div>
+                  <div className="col-span-1 text-[0.7rem] text-left w-full">
+                    <div className="flex items-center">
+                      <div>
+                        <Image
+                          src={item.image ?? ""}
+                          width={27}
+                          height={27}
+                          alt="item image"
+                        />
+                      </div>
+                      <div className="ml-2">
+                        <div>{item.item}</div>
+                        <div className="flex w-full items-center">
+                          <div>
+                            <ImMakeGroup />
+                          </div>
+                          <div className="text-[0.65rem] ml-[2px]">
+                            {item.type}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="text-[0.7rem] text-center">
+                    {item.quantity} kg
                   </div>
                 </div>
-              </div>
-            </div>
-            <div className="text-[0.7rem] text-center">
-              {item.quantity} {item.unit}
-              {item.quantity > 1 ? "s" : ""}
-            </div>
+              );
+            })}
           </div>
-        ))}
+        )}
       </div>
     </div>
   );
