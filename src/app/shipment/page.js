@@ -32,7 +32,10 @@ const Shipment = () => {
   // Function to convert price strings to numbers
   const parsePrice = (priceString) => {
     if (!priceString) return 0;
-    return parseFloat(priceString.replace(/[₱,\s]/g, "")) || 0;
+    // Remove the peso sign, commas, and spaces, then convert to float
+    const numericString = priceString.replace(/[₱,\s]/g, "");
+    const value = parseFloat(numericString);
+    return isNaN(value) ? 0 : value;
   };
 
   // Calculate totals for a shipment based on its items
@@ -42,9 +45,10 @@ const Shipment = () => {
         return {
           capital: acc.capital + parsePrice(item.capital),
           total: acc.total + parsePrice(item.total),
+          profit: acc.profit + parsePrice(item.profit),
         };
       },
-      { capital: 0, total: 0 }
+      { capital: 0, total: 0, profit: 0 }
     );
   };
 
@@ -75,7 +79,7 @@ const Shipment = () => {
             items: items || [],
             calculatedCapital: totals.capital,
             calculatedTotal: totals.total,
-            calculatedProfit: totals.total - totals.capital,
+            calculatedProfit: totals.profit,
           };
         })
       );
@@ -89,6 +93,7 @@ const Shipment = () => {
   };
 
   const formatCurrency = (amount) => {
+    if (!amount && amount !== 0) return "₱ 0.00";
     return `₱ ${amount.toLocaleString(undefined, {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
@@ -134,11 +139,10 @@ const Shipment = () => {
 
   if (loading) {
     return (
-      <div>
-        <Navbar />
-        <div className="w-full bg-gray-50 h-[91vh] flex items-center justify-center">
-          Loading...
-        </div>
+      <div className="flex gap-2 w-screen h-screen m-auto justify-center items-center bg-white">
+        <div className="w-5 h-5 rounded-full animate-pulse bg-green-600"></div>
+        <div className="w-5 h-5 rounded-full animate-pulse bg-green-600"></div>
+        <div className="w-5 h-5 rounded-full animate-pulse bg-green-600"></div>
       </div>
     );
   }
