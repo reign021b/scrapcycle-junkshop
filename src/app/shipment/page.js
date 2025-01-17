@@ -1,90 +1,99 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Navbar from "../components/navbar";
 import { LuFilter, LuPlus } from "react-icons/lu";
 import { TbArrowsSort } from "react-icons/tb";
 import { FaSortDown, FaSortUp } from "react-icons/fa";
+import { supabase } from "/utils/supabase/client";
 
 const Shipment = () => {
   const [selectedStatus, setSelectedStatus] = useState("DONE");
   const [expandedRows, setExpandedRows] = useState(new Set());
+  const [shipments, setShipments] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  // Sample data - you would replace this with your actual data
-  const shipments = [
-    {
-      id: "#1234FRDDE",
-      buyer: "Andy Martinez",
-      destination: "231 Dar Subdivision, Butuan City",
-      departure: { date: "2024-12-25", time: "4:26 PM" },
-      arrival: { date: "2024-12-25", time: "4:26 PM" },
-      cost: "₱ 1,500,000",
-      capital: "₱ 1,500,000",
-      total: "₱ 2,104,200",
-      profit: "₱ 604,200",
-      status: "DONE",
-      items: [
-        {
-          itemId: "#1234FRDDE",
-          item: "Copper",
-          capital: "₱ 1,500,000",
-          inQuan: "5,000 kgs",
-          outQuan: "5,010 kgs",
-          price: "₱ 420.00 / kg",
-          total: "₱ 2,104,200",
-          profit: "₱ 604,200",
-        },
-      ],
-    },
-    {
-      id: "#1234FESAE",
-      buyer: "Reignme Burdeos",
-      destination: "Emenvil Subdivision, Butuan City",
-      departure: { date: "2024-11-12", time: "4:26 PM" },
-      arrival: { date: "2024-11-12", time: "4:26 PM" },
-      cost: "₱ 2,600,000",
-      capital: "₱ 2,600,000",
-      total: "₱ 3,204,200",
-      profit: "₱ 704,200",
-      status: "ONGOING",
-      items: [
-        {
-          itemId: "#1234FRDDE",
-          item: "Copper",
-          capital: "₱ 1,500,000",
-          inQuan: "5,000 kgs",
-          outQuan: "5,010 kgs",
-          price: "₱ 420.00 / kg",
-          total: "₱ 2,104,200",
-          profit: "₱ 604,200",
-        },
-      ],
-    },
-    {
-      id: "#1234RREEE",
-      buyer: "Elro Estoque",
-      destination: "Alviola Village, Butuan City",
-      departure: { date: "2024-10-25", time: "4:26 PM" },
-      arrival: { date: "2024-10-25", time: "4:26 PM" },
-      cost: "₱ 1,500,000",
-      capital: "₱ 1,500,000",
-      total: "₱ 2,104,200",
-      profit: "₱ 604,200",
-      status: "CANCELLED",
-      items: [
-        {
-          itemId: "#1234FRDDE",
-          item: "Copper",
-          capital: "₱ 1,500,000",
-          inQuan: "5,000 kgs",
-          outQuan: "5,010 kgs",
-          price: "₱ 420.00 / kg",
-          total: "₱ 2,104,200",
-          profit: "₱ 604,200",
-        },
-      ],
-    },
-  ];
+  useEffect(() => {
+    fetchShipments();
+  }, []);
+
+  const formatDate = (timestamp) => {
+    if (!timestamp) return "";
+    const date = new Date(timestamp);
+    return date.toLocaleDateString();
+  };
+
+  const formatTime = (timestamp) => {
+    if (!timestamp) return "";
+    const date = new Date(timestamp);
+    return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  };
+
+  // Function to convert price strings to numbers
+  const parsePrice = (priceString) => {
+    if (!priceString) return 0;
+    return parseFloat(priceString.replace(/[₱,\s]/g, "")) || 0;
+  };
+
+  // Calculate totals for a shipment based on its items
+  const calculateShipmentTotals = (items) => {
+    return items.reduce(
+      (acc, item) => {
+        return {
+          capital: acc.capital + parsePrice(item.capital),
+          total: acc.total + parsePrice(item.total),
+        };
+      },
+      { capital: 0, total: 0 }
+    );
+  };
+
+  const fetchShipments = async () => {
+    try {
+      // Fetch shipment logs
+      const { data: shipmentLogs, error: shipmentError } = await supabase
+        .from("shipmentLogs")
+        .select("*")
+        .order("shipping_date", { ascending: false });
+
+      if (shipmentError) throw shipmentError;
+
+      // Fetch items for each shipment
+      const shipmentsWithItems = await Promise.all(
+        shipmentLogs.map(async (shipment) => {
+          const { data: items, error: itemsError } = await supabase
+            .from("shippedItems")
+            .select("*")
+            .eq("shipment_id", shipment.id);
+
+          if (itemsError) throw itemsError;
+
+          const totals = calculateShipmentTotals(items || []);
+
+          return {
+            ...shipment,
+            items: items || [],
+            calculatedCapital: totals.capital,
+            calculatedTotal: totals.total,
+            calculatedProfit: totals.total - totals.capital,
+          };
+        })
+      );
+
+      setShipments(shipmentsWithItems);
+    } catch (error) {
+      console.error("Error fetching data:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const formatCurrency = (amount) => {
+    return `₱ ${amount.toLocaleString(undefined, {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    })}`;
+  };
 
   const toggleRowExpansion = (id) => {
     setExpandedRows((prev) => {
@@ -122,6 +131,17 @@ const Shipment = () => {
         };
     }
   };
+
+  if (loading) {
+    return (
+      <div>
+        <Navbar />
+        <div className="w-full bg-gray-50 h-[91vh] flex items-center justify-center">
+          Loading...
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div>
@@ -196,7 +216,7 @@ const Shipment = () => {
             <div>PROFIT</div>
             <div className="justify-center items-center flex">
               <div>STATUS</div>
-              <div className="ml-12 "></div>
+              <div className="ml-12"></div>
             </div>
           </div>
 
@@ -214,23 +234,40 @@ const Shipment = () => {
                     getStatusStyles(shipment.status).row
                   } border border-t-0 border-x-0 py-3 pr-6 items-center cursor-pointer`}
                 >
-                  <div>{shipment.id}</div>
+                  <div>#{shipment.id}</div>
                   <div className="text-black">{shipment.buyer}</div>
                   <div className="text-black">{shipment.destination}</div>
                   <div>
-                    <div className="text-black">{shipment.departure.date}</div>
+                    <div className="text-black">
+                      {formatDate(shipment.departure)}
+                    </div>
                     <div className="text-gray-500">
-                      {shipment.departure.time}
+                      {formatTime(shipment.departure)}
                     </div>
                   </div>
                   <div>
-                    <div className="text-black">{shipment.arrival.date}</div>
-                    <div className="text-gray-500">{shipment.arrival.time}</div>
+                    <div className="text-black">
+                      {formatDate(shipment.arrival)}
+                    </div>
+                    <div className="text-gray-500">
+                      {formatTime(shipment.arrival)}
+                    </div>
                   </div>
-                  <div className="text-black">{shipment.cost}</div>
-                  <div className="text-black">{shipment.capital}</div>
-                  <div className="text-black">{shipment.total}</div>
-                  <div className="text-black">{shipment.profit}</div>
+                  <div className="text-black">
+                    ₱{" "}
+                    {isNaN(Number(shipment.cost))
+                      ? "0"
+                      : Number(shipment.cost).toLocaleString("en-PH")}
+                  </div>
+                  <div className="text-black">
+                    {formatCurrency(shipment.calculatedCapital)}
+                  </div>
+                  <div className="text-black">
+                    {formatCurrency(shipment.calculatedTotal)}
+                  </div>
+                  <div className="text-black">
+                    {formatCurrency(shipment.calculatedProfit)}
+                  </div>
                   <div className="flex items-center justify-center text-center">
                     <div
                       className={`px-5 rounded-full ${
@@ -263,23 +300,52 @@ const Shipment = () => {
                         <div className="pr-4">PROFIT</div>
                       </div>
                     </div>
-                    {shipment.items.map((item, index) => (
+                    {shipment.items.map((item) => (
                       <div
-                        key={index}
+                        key={item.id}
                         className="grid grid-cols-8 pl-6 text-xs border border-t-0 border-x-0 py-4 pr-6 items-center"
                       >
-                        <div className="text-gray-400">{item.itemId}</div>
+                        <div className="text-gray-400">#{item.id}</div>
                         <div>{item.item}</div>
-                        <div>{item.capital}</div>
-                        <div>{item.inQuan}</div>
-                        <div className="text-[#27AE60] font-medium">
-                          {item.outQuan}
+                        <div>
+                          ₱{" "}
+                          {isNaN(Number(item.capital))
+                            ? "0"
+                            : Number(item.capital).toLocaleString("en-PH")}
                         </div>
-                        <div>{item.price}</div>
-                        <div>{item.total}</div>
+                        <div>
+                          {isNaN(Number(item.in_quan))
+                            ? "0"
+                            : Number(item.in_quan).toLocaleString("en-PH")}{" "}
+                          kgs
+                        </div>
+                        <div className="text-[#27AE60] font-medium">
+                          {isNaN(Number(item.out_quan))
+                            ? "0"
+                            : Number(item.out_quan).toLocaleString(
+                                "en-PH"
+                              )}{" "}
+                          kgs
+                        </div>
+                        <div>
+                          ₱{" "}
+                          {isNaN(Number(item.price))
+                            ? "0"
+                            : Number(item.price).toLocaleString("en-PH")}
+                        </div>
+                        <div>
+                          ₱{" "}
+                          {isNaN(Number(item.total))
+                            ? "0"
+                            : Number(item.total).toLocaleString("en-PH")}
+                        </div>
+
                         <div className="text-center px-5">
                           <div className="pr-4 text-[#27AE60] font-medium">
-                            {item.profit}
+                            ₱{" "}
+                            {isNaN(Number(item.profit))
+                              ? "0"
+                              : Number(item.profit).toLocaleString("en-PH")}
                           </div>
                         </div>
                       </div>
