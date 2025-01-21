@@ -30,6 +30,7 @@ export default function ProcessedScraps() {
   const [selectedType, setSelectedType] = useState(null);
   const [junkshopId, setJunkshopId] = useState(null);
   const [branches, setBranches] = useState([]);
+  const [processedItems, setProcessedItems] = useState([]);
 
   const handleImageUpload = (imageUrl) => {
     setNewItemData((prev) => ({
@@ -91,6 +92,14 @@ export default function ProcessedScraps() {
 
         if (itemsError) throw itemsError;
 
+        // Fetch all processed items
+        const { data: processedData, error: processedError } = await supabase
+          .from("processeditems")
+          .select("*");
+
+        if (processedError) throw processedError;
+
+        setProcessedItems(processedData);
         setItemTypes(types);
 
         const initialGroups = types.reduce((acc, { id, name }) => {
@@ -118,8 +127,29 @@ export default function ProcessedScraps() {
       }
     };
 
-    fetchData();
-  }, []);
+    if (junkshopId) {
+      fetchData();
+    }
+  }, [junkshopId]);
+
+  const getProcessedQuantity = (itemName, branch) => {
+    const filteredItems = processedItems.filter(
+      (p) =>
+        p.item.toLowerCase() === itemName.toLowerCase() &&
+        p.branch === branch &&
+        p.junkshop_id === junkshopId
+    );
+
+    const total = filteredItems.reduce((sum, item) => {
+      const quantity = parseFloat(item.quantity) || 0;
+      return sum + quantity;
+    }, 0);
+
+    return total.toLocaleString("en-US", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
+  };
 
   const handleAddItemClick = (typeName) => {
     const typeData = itemTypes.find(
@@ -332,7 +362,10 @@ export default function ProcessedScraps() {
                       <div className="flex items-center">
                         <div>
                           <div className="flex items-center text-xs mb-2 justify-end">
-                            <p>0 kg / {item.goal_quantity} kg</p>
+                            <p>
+                              {getProcessedQuantity(item.item, item.branch)} kg
+                              / {item.goal_quantity} kg
+                            </p>
                           </div>
                           <div className="flex items-end">
                             {[...Array(12)].map((_, i) => (
