@@ -1,10 +1,7 @@
 import React, { useState, useEffect } from "react";
-import Image from "next/image";
 import { supabase } from "/utils/supabase/client";
-import { LiaGreaterThanSolid, LiaEqualsSolid } from "react-icons/lia";
-import { BsFillPlusSquareFill } from "react-icons/bs";
-import { SlOptionsVertical } from "react-icons/sl";
 import { AddItemModal, GoalItemModal } from "./modals/ItemModal";
+import TypeSection from "./TypeSection";
 
 export default function ProcessedScraps() {
   const [selectedItem, setSelectedItem] = useState(null);
@@ -292,105 +289,17 @@ export default function ProcessedScraps() {
 
       <div className="h-[70vh] overflow-y-auto">
         {itemTypes.map((type) => (
-          <div key={type.id} className="mb-2">
-            <div
-              className={`flex bg-green-50 justify-between ${
-                !collapsedStates[type.name.toLowerCase()]
-                  ? "border-t-2 border-b-2 border-gray-200"
-                  : ""
-              }`}
-            >
-              <div
-                className="px-6 py-3 flex items-center cursor-pointer"
-                onClick={() => handleToggleCollapse(type.name.toLowerCase())}
-              >
-                {collapsedStates[type.name.toLowerCase()] ? (
-                  <LiaGreaterThanSolid />
-                ) : (
-                  <LiaEqualsSolid />
-                )}
-                &nbsp; &nbsp;
-                <p className="font-medium text-[1rem]">
-                  {type.name.replace(/\b\w/g, (char) => char.toUpperCase())}
-                </p>
-              </div>
-              <div
-                className="text-[1.7rem] text-green-600 flex items-center px-5 cursor-pointer"
-                onClick={() => handleAddItemClick(type.name)}
-              >
-                <BsFillPlusSquareFill />
-              </div>
-            </div>
-
-            <div
-              style={{
-                maxHeight: collapsedStates[type.name.toLowerCase()]
-                  ? "0"
-                  : "1000px",
-                overflow: "hidden",
-                transition: "max-height 0.3s ease-in-out",
-              }}
-            >
-              {!collapsedStates[type.name.toLowerCase()] &&
-                (groupedItems[type.name.toLowerCase()]?.items?.length > 0 ? (
-                  groupedItems[type.name.toLowerCase()].items.map((item) => (
-                    <div
-                      key={item.id}
-                      className="pl-6 pr-3 py-2 mt-2 flex justify-between hover:border-gray-500 cursor-pointer"
-                      onClick={() => handleItemClick(item)}
-                    >
-                      <div className="flex">
-                        <div>
-                          <Image
-                            src={item.image}
-                            width={50}
-                            height={50}
-                            alt={item.item}
-                          />
-                        </div>
-                        <div className="ml-3 items-center">
-                          <p className="font-semibold">
-                            {item.item.replace(/\b\w/g, (char) =>
-                              char.toUpperCase()
-                            )}
-                          </p>
-                          <p className="pt-1 font-[480] text-sm text-gray-500">
-                            ₱ {item.price || 0} / kg
-                          </p>
-                        </div>
-                      </div>
-                      <div className="flex items-center">
-                        <div>
-                          <div className="flex items-center text-xs mb-2 justify-end">
-                            <p>
-                              {getProcessedQuantity(item.item, item.branch)} kg
-                              / {item.goal_quantity} kg
-                            </p>
-                          </div>
-                          <div className="flex items-end">
-                            {[...Array(12)].map((_, i) => (
-                              <div
-                                key={i}
-                                className={`h-[16px] w-[5px] ${
-                                  i < 0 ? "bg-green-600" : "bg-[#D9D9D9]"
-                                } rounded-2xl ${i < 11 ? "mr-1" : ""}`}
-                              ></div>
-                            ))}
-                          </div>
-                        </div>
-                        <div className="ml-2 text-gray-500 font-extralight">
-                          <SlOptionsVertical />
-                        </div>
-                      </div>
-                    </div>
-                  ))
-                ) : (
-                  <div className="pl-6 pr-3 py-4 text-gray-500 italic text-center">
-                    No items in this category
-                  </div>
-                ))}
-            </div>
-          </div>
+          <TypeSection
+            key={type.id}
+            type={type}
+            isCollapsed={collapsedStates[type.name.toLowerCase()]}
+            onToggle={() => handleToggleCollapse(type.name.toLowerCase())}
+            onAddItem={handleAddItemClick}
+            items={groupedItems[type.name.toLowerCase()]?.items}
+            onItemClick={handleItemClick}
+            junkshopId={junkshopId}
+            processedItems={processedItems}
+          />
         ))}
       </div>
 
