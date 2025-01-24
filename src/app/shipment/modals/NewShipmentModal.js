@@ -66,9 +66,10 @@ const NewShipmentModal = () => {
             <input
               id="buyer"
               type="text"
+              placeholder="Enter buyer name"
               value={buyer}
               onChange={(e) => setBuyer(e.target.value)}
-              className="appearance-none border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-green-500"
+              className="font-normal appearance-none border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-green-500"
               required
             />
           </div>
@@ -83,9 +84,10 @@ const NewShipmentModal = () => {
             <input
               id="destination"
               type="text"
+              placeholder="Enter destination"
               value={destination}
               onChange={(e) => setDestination(e.target.value)}
-              className="appearance-none border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-green-500"
+              className="font-normal appearance-none border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-green-500"
               required
             />
           </div>
@@ -109,7 +111,7 @@ const NewShipmentModal = () => {
                   placeholder="Item"
                   value={item.item}
                   onChange={(e) => updateItem(index, "item", e.target.value)}
-                  className="flex-1 appearance-none border rounded-lg py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-green-500"
+                  className="font-normal flex-1 appearance-none border rounded-lg py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-green-500"
                   required
                 />
                 <input
@@ -117,7 +119,7 @@ const NewShipmentModal = () => {
                   placeholder="Price"
                   value={item.price}
                   onChange={(e) => updateItem(index, "price", e.target.value)}
-                  className="w-28 appearance-none border rounded-lg py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-green-500"
+                  className="font-normal w-32 appearance-none border rounded-lg py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-green-500"
                   required
                 />
                 <input
@@ -127,7 +129,7 @@ const NewShipmentModal = () => {
                   onChange={(e) =>
                     updateItem(index, "quantity", e.target.value)
                   }
-                  className="w-28 appearance-none border rounded-lg py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-green-500"
+                  className="font-normal w-32 appearance-none border rounded-lg py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-green-500"
                   required
                 />
                 {items.length > 1 && (
