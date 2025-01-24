@@ -6,6 +6,7 @@ import { LuFilter, LuPlus } from "react-icons/lu";
 import { TbArrowsSort } from "react-icons/tb";
 import { FaSortDown, FaSortUp } from "react-icons/fa";
 import { supabase } from "/utils/supabase/client";
+import NewShipmentModal from "./modals/NewShipmentModal";
 
 const Shipment = () => {
   const [selectedStatus, setSelectedStatus] = useState("DONE");
@@ -211,12 +212,7 @@ const Shipment = () => {
                 <div className="ml-2 text-sm">Sort by</div>
               </div>
               <div className="mr-6 border-[0.5px] border-r-0 h-10"></div>
-              <div className="bg-[#27AE60] text-white pl-4 pr-3 py-[6px] font-[450] text-sm flex items-center rounded-lg cursor-pointer">
-                <div className="mr-2 text-sm">Insert</div>
-                <div className="text-xl text-white flex items-center">
-                  <LuPlus />
-                </div>
-              </div>
+              <NewShipmentModal />
             </div>
           </div>
 
