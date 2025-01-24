@@ -22,6 +22,12 @@ const ItemCard = ({ item, onItemClick, junkshopId, processedItems }) => {
     });
   };
 
+  const processedQuantity = getProcessedQuantity(item.item, item.branch);
+  const goalQuantity = Number(item.goal_quantity).toLocaleString("en-US", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+
   return (
     <div
       className="pl-6 pr-3 py-2 mt-2 flex justify-between hover:border-gray-500 cursor-pointer"
@@ -52,7 +58,10 @@ const ItemCard = ({ item, onItemClick, junkshopId, processedItems }) => {
               kg
             </p>
           </div>
-          <ProgressBars value={0} />
+          <ProgressBars
+            processedQuantity={processedQuantity}
+            goalQuantity={goalQuantity}
+          />
         </div>
         <div className="ml-2 text-gray-500 font-extralight">
           <SlOptionsVertical />

@@ -181,9 +181,7 @@ export default function ProcessedScraps() {
       price: newItemData.price,
     };
 
-    console.log("Inserting data:", insertData);
-
-    const { data, error } = await supabase
+    const { error } = await supabase
       .from("itemgoals")
       .insert([insertData])
       .select();
@@ -194,13 +192,40 @@ export default function ProcessedScraps() {
       return;
     }
 
-    setGroupedItems((prev) => ({
-      ...prev,
-      [newItemData.typeName.toLowerCase()]: {
-        ...prev[newItemData.typeName.toLowerCase()],
-        items: [...prev[newItemData.typeName.toLowerCase()].items, data[0]],
-      },
-    }));
+    // Refetch data
+    try {
+      const { data: items, error: itemsError } = await supabase.rpc(
+        "get_itemgoals_for_inventory"
+      );
+
+      if (itemsError) throw itemsError;
+
+      // Fetch processed items
+      const { data: processedData, error: processedError } = await supabase
+        .from("processeditems")
+        .select("*");
+
+      if (processedError) throw processedError;
+
+      // Reconstruct grouped items
+      const initialGroups = itemTypes.reduce((acc, { id, name }) => {
+        acc[name.toLowerCase()] = { id, items: [] };
+        return acc;
+      }, {});
+
+      const groupedData = items.reduce((acc, item) => {
+        const type = item.type.toLowerCase();
+        if (acc.hasOwnProperty(type)) {
+          acc[type].items.push(item);
+        }
+        return acc;
+      }, initialGroups);
+
+      setProcessedItems(processedData);
+      setGroupedItems(groupedData);
+    } catch (error) {
+      console.error("Error refetching data:", error);
+    }
 
     setIsAddItemModalOpen(false);
     setNewItemData({
@@ -259,21 +284,40 @@ export default function ProcessedScraps() {
       return;
     }
 
-    setGroupedItems((prev) => {
-      const updated = { ...prev };
-      if (updated[selectedItem.type]) {
-        updated[selectedItem.type] = updated[selectedItem.type].map((item) =>
-          item.id === selectedItem.id
-            ? {
-                ...item,
-                goal_quantity: formData.goalQuantity,
-                price: formData.pricePerQuantity,
-              }
-            : item
-        );
-      }
-      return updated;
-    });
+    // Refetch data
+    try {
+      const { data: items, error: itemsError } = await supabase.rpc(
+        "get_itemgoals_for_inventory"
+      );
+
+      if (itemsError) throw itemsError;
+
+      // Fetch processed items
+      const { data: processedData, error: processedError } = await supabase
+        .from("processeditems")
+        .select("*");
+
+      if (processedError) throw processedError;
+
+      // Reconstruct grouped items
+      const initialGroups = itemTypes.reduce((acc, { id, name }) => {
+        acc[name.toLowerCase()] = { id, items: [] };
+        return acc;
+      }, {});
+
+      const groupedData = items.reduce((acc, item) => {
+        const type = item.type.toLowerCase();
+        if (acc.hasOwnProperty(type)) {
+          acc[type].items.push(item);
+        }
+        return acc;
+      }, initialGroups);
+
+      setProcessedItems(processedData);
+      setGroupedItems(groupedData);
+    } catch (error) {
+      console.error("Error refetching data:", error);
+    }
 
     setIsGoalItemModalOpen(false);
     setSelectedItem(null);
