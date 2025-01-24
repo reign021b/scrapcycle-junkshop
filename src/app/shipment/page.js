@@ -20,13 +20,21 @@ const Shipment = () => {
   const formatDate = (timestamp) => {
     if (!timestamp) return "";
     const date = new Date(timestamp);
-    return date.toLocaleDateString();
+    return date.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
   };
 
   const formatTime = (timestamp) => {
     if (!timestamp) return "";
     const date = new Date(timestamp);
-    return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+    return date.toLocaleTimeString("en-US", {
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true,
+    });
   };
 
   // Function to convert price strings to numbers
@@ -42,13 +50,16 @@ const Shipment = () => {
   const calculateShipmentTotals = (items) => {
     return items.reduce(
       (acc, item) => {
+        const itemRevenue = parsePrice(item.out_quan) * parsePrice(item.price);
+        const itemTotal = parsePrice(item.total);
         return {
-          capital: acc.capital + parsePrice(item.capital),
-          total: acc.total + parsePrice(item.total),
-          profit: acc.profit + parsePrice(item.profit),
+          total: acc.total + itemTotal,
+          revenue: acc.revenue + itemRevenue,
+          capital:
+            acc.capital + parsePrice(item.in_quan) * parsePrice(item.price),
         };
       },
-      { capital: 0, total: 0, profit: 0 }
+      { capital: 0, total: 0, revenue: 0 }
     );
   };
 
@@ -79,7 +90,9 @@ const Shipment = () => {
             items: items || [],
             calculatedCapital: totals.capital,
             calculatedTotal: totals.total,
-            calculatedProfit: totals.profit,
+            calculatedRevenue: totals.revenue,
+            calculatedDiff:
+              totals.revenue > 0 ? totals.revenue - totals.capital : null,
           };
         })
       );
@@ -208,16 +221,15 @@ const Shipment = () => {
           </div>
 
           {/* Column Title */}
-          <div className="grid grid-cols-10 pl-6 text-xs text-gray-500 bg-[#FCFCFC] border border-x-0 py-4 pr-6">
+          <div className="grid grid-cols-9 pl-6 text-xs text-gray-500 bg-[#FCFCFC] border border-x-0 py-4 pr-6">
             <div>SHIPMENT ID</div>
             <div>BUYER</div>
             <div>DESTINATION</div>
             <div>DEPARTURE</div>
             <div>ARRIVAL</div>
-            <div>COST</div>
             <div>CAPITAL</div>
-            <div>TOTAL</div>
-            <div>PROFIT</div>
+            <div>REVENUE</div>
+            <div>DIFF</div>
             <div className="justify-center items-center flex">
               <div>STATUS</div>
               <div className="ml-12"></div>
@@ -234,7 +246,7 @@ const Shipment = () => {
               <React.Fragment key={shipment.id}>
                 <div
                   onClick={() => toggleRowExpansion(shipment.id)}
-                  className={`grid grid-cols-10 pl-6 text-xs text-gray-500 ${
+                  className={`grid grid-cols-9 pl-6 text-xs text-gray-500 ${
                     getStatusStyles(shipment.status).row
                   } border border-t-0 border-x-0 py-3 pr-6 items-center cursor-pointer`}
                 >
@@ -251,26 +263,25 @@ const Shipment = () => {
                   </div>
                   <div>
                     <div className="text-black">
-                      {formatDate(shipment.arrival)}
+                      {shipment.arrival ? formatDate(shipment.arrival) : "-"}
                     </div>
                     <div className="text-gray-500">
-                      {formatTime(shipment.arrival)}
+                      {shipment.arrival ? formatTime(shipment.arrival) : "-"}
                     </div>
                   </div>
                   <div className="text-black">
                     ₱{" "}
-                    {isNaN(Number(shipment.cost))
+                    {isNaN(Number(shipment.capital))
                       ? "0"
-                      : Number(shipment.cost).toLocaleString("en-PH")}
+                      : Number(shipment.capital).toLocaleString("en-PH")}
                   </div>
                   <div className="text-black">
-                    {formatCurrency(shipment.calculatedCapital)}
+                    {formatCurrency(shipment.calculatedRevenue)}
                   </div>
                   <div className="text-black">
-                    {formatCurrency(shipment.calculatedTotal)}
-                  </div>
-                  <div className="text-black">
-                    {formatCurrency(shipment.calculatedProfit)}
+                    {shipment.calculatedDiff !== null
+                      ? formatCurrency(shipment.calculatedDiff)
+                      : "-"}
                   </div>
                   <div className="flex items-center justify-center text-center">
                     <div
@@ -292,31 +303,22 @@ const Shipment = () => {
 
                 {expandedRows.has(shipment.id) && (
                   <>
-                    <div className="grid grid-cols-8 pl-6 text-xs text-gray-500 border border-t-0 border-x-0 py-1 pr-6 items-center">
+                    <div className="grid grid-cols-7 pl-6 text-xs text-gray-500 border border-t-0 border-x-0 py-1 pr-6 items-center">
                       <div>ITEM ID</div>
                       <div>ITEM</div>
-                      <div>CAPITAL</div>
                       <div>IN-QUAN.</div>
                       <div>OUT-QUAN.</div>
                       <div>PRICE</div>
                       <div>TOTAL</div>
-                      <div className="text-center px-5">
-                        <div className="pr-4">PROFIT</div>
-                      </div>
+                      <div>REVENUE</div>
                     </div>
                     {shipment.items.map((item) => (
                       <div
                         key={item.id}
-                        className="grid grid-cols-8 pl-6 text-xs border border-t-0 border-x-0 py-4 pr-6 items-center"
+                        className="grid grid-cols-7 pl-6 text-xs border border-t-0 border-x-0 py-4 pr-6 items-center"
                       >
                         <div className="text-gray-400">#{item.id}</div>
                         <div>{item.item}</div>
-                        <div>
-                          ₱{" "}
-                          {isNaN(Number(item.capital))
-                            ? "0"
-                            : Number(item.capital).toLocaleString("en-PH")}
-                        </div>
                         <div>
                           {isNaN(Number(item.in_quan))
                             ? "0"
@@ -343,14 +345,10 @@ const Shipment = () => {
                             ? "0"
                             : Number(item.total).toLocaleString("en-PH")}
                         </div>
-
-                        <div className="text-center px-5">
-                          <div className="pr-4 text-[#27AE60] font-medium">
-                            ₱{" "}
-                            {isNaN(Number(item.profit))
-                              ? "0"
-                              : Number(item.profit).toLocaleString("en-PH")}
-                          </div>
+                        <div>
+                          {formatCurrency(
+                            parsePrice(item.out_quan) * parsePrice(item.price)
+                          )}
                         </div>
                       </div>
                     ))}
