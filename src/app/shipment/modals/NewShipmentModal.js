@@ -6,7 +6,7 @@ const NewShipmentModal = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [buyer, setBuyer] = useState("");
   const [destination, setDestination] = useState("");
-  const [shippingDate, setShippingDate] = useState("");
+  const [departureDate, setDepartureDate] = useState("");
   const [selectedBranch, setSelectedBranch] = useState("");
   const [branches, setBranches] = useState([]);
   const [items, setItems] = useState([{ item: "", price: "", quantity: "" }]);
@@ -19,7 +19,7 @@ const NewShipmentModal = () => {
   const resetForm = () => {
     setBuyer("");
     setDestination("");
-    setShippingDate("");
+    setDepartureDate("");
     setSelectedBranch("");
     setItems([{ item: "", price: "", quantity: "" }]);
     setSuggestions([]);
@@ -195,7 +195,7 @@ const NewShipmentModal = () => {
         .from("shipmentLogs")
         .insert([
           {
-            shipping_date: shippingDate,
+            departure: departureDate,
             buyer,
             destination,
             capital,
@@ -263,12 +263,12 @@ const NewShipmentModal = () => {
           <div className="grid grid-cols-2 gap-4 mb-4">
             <div>
               <label className="block text-gray-700 text-sm font-bold mb-2">
-                Shipping Date
+                Departure Date
               </label>
               <input
                 type="datetime-local"
-                value={shippingDate}
-                onChange={(e) => setShippingDate(e.target.value)}
+                value={departureDate}
+                onChange={(e) => setDepartureDate(e.target.value)}
                 className="font-normal appearance-none border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-green-500"
                 required
               />
