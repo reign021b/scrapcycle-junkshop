@@ -7,6 +7,7 @@ import { TbArrowsSort } from "react-icons/tb";
 import { FaSortDown, FaSortUp } from "react-icons/fa";
 import { supabase } from "/utils/supabase/client";
 import NewShipmentModal from "./modals/NewShipmentModal";
+import StatusDropdown from "./components/StatusDropdown";
 
 const Shipment = () => {
   const [selectedStatus, setSelectedStatus] = useState("DONE");
@@ -302,13 +303,11 @@ const Shipment = () => {
                     </>
                   )}
                   <div className="flex items-center justify-center text-center">
-                    <div
-                      className={`px-5 rounded-full ${
-                        getStatusStyles(shipment.status).badge
-                      } font-semibold py-1`}
-                    >
-                      {shipment.status}
-                    </div>
+                    <StatusDropdown
+                      currentStatus={shipment.status}
+                      shipmentId={shipment.id}
+                      onStatusUpdate={fetchShipments}
+                    />
                     <div className="ml-6 text-2xl">
                       {expandedRows.has(shipment.id) ? (
                         <FaSortUp className="mt-3" />
