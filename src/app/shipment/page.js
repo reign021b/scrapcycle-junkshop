@@ -10,7 +10,7 @@ import NewShipmentModal from "./modals/NewShipmentModal";
 import StatusDropdown from "./components/StatusDropdown";
 
 const Shipment = () => {
-  const [selectedStatus, setSelectedStatus] = useState("DONE");
+  const [selectedStatus, setSelectedStatus] = useState("ONGOING");
   const [expandedRows, setExpandedRows] = useState(new Set());
   const [shipments, setShipments] = useState([]);
   const [loading, setLoading] = useState(true);
