@@ -1,4 +1,3 @@
-// components/modals/ItemModal.js
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import { supabase } from "/utils/supabase/client";
@@ -81,6 +80,7 @@ export const AddItemModal = ({
     onChange({ target: { name: "branch", value: "" } });
     onChange({ target: { name: "price", value: "" } });
     onChange({ target: { name: "goalQuantity", value: "" } });
+    onChange({ target: { name: "unit", value: "" } });
     onImageUpload("");
   };
 
@@ -115,6 +115,19 @@ export const AddItemModal = ({
               type="text"
               name="item"
               value={newItemData.item}
+              onChange={onChange}
+              className="mt-1 block w-full p-2 rounded-md border shadow-sm focus:border-green-500 focus:ring-green-500"
+              required
+            />
+          </div>
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700">
+              Unit (e.g., kg, pcs, g)
+            </label>
+            <input
+              type="text"
+              name="unit"
+              value={newItemData.unit}
               onChange={onChange}
               className="mt-1 block w-full p-2 rounded-md border shadow-sm focus:border-green-500 focus:ring-green-500"
               required
@@ -255,7 +268,7 @@ export const GoalItemModal = ({
               className="block text-gray-700 font-medium mb-2"
               htmlFor="pricePerQuantity"
             >
-              Price per kg
+              Price per {selectedItem.unit || "unit"}
             </label>
             <input
               type="number"
@@ -275,7 +288,7 @@ export const GoalItemModal = ({
               className="block text-gray-700 font-medium mb-2"
               htmlFor="goalQuantity"
             >
-              Quantity Goal
+              Quantity Goal ({selectedItem.unit || "units"})
             </label>
             <input
               type="number"
