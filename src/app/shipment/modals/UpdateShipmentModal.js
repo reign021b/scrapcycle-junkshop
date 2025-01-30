@@ -176,7 +176,7 @@ const UpdateShipmentModal = ({ isOpen, onClose, shipmentId, onUpdate }) => {
             <div className="flex space-x-2 mb-2">
               <div className="flex-1">
                 <label className="block text-gray-700 text-sm font-bold">
-                  Name
+                  Item Name
                 </label>
               </div>
               <div className="w-40">
@@ -222,7 +222,7 @@ const UpdateShipmentModal = ({ isOpen, onClose, shipmentId, onUpdate }) => {
                 <div className="relative w-32">
                   <input
                     type="number"
-                    placeholder={`Out Qty (${item.unit})`}
+                    placeholder={`Out Qty`}
                     value={item.out_quan}
                     onChange={(e) =>
                       handleQuantityChange(index, e.target.value)
