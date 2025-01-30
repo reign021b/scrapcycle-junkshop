@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { LuPlus, LuTrash2, LuX } from "react-icons/lu";
 import { supabase } from "/utils/supabase/client";
 
-const NewShipmentModal = () => {
+const NewShipmentModal = ({ onShipmentCreated }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [buyer, setBuyer] = useState("");
   const [destination, setDestination] = useState("");
@@ -228,6 +228,8 @@ const NewShipmentModal = () => {
         .insert(shippedItems);
 
       if (itemsError) throw itemsError;
+
+      onShipmentCreated();
 
       handleClose();
     } catch (error) {

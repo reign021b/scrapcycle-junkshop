@@ -15,6 +15,10 @@ const Shipment = () => {
   const [shipments, setShipments] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  const handleShipmentCreated = () => {
+    fetchShipments();
+  };
+
   useEffect(() => {
     fetchShipments();
   }, []);
@@ -213,7 +217,7 @@ const Shipment = () => {
                 <div className="ml-2 text-sm">Sort by</div>
               </div>
               <div className="mr-6 border-[0.5px] border-r-0 h-10"></div>
-              <NewShipmentModal />
+              <NewShipmentModal onShipmentCreated={handleShipmentCreated} />
             </div>
           </div>
 
