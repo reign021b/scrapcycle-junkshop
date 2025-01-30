@@ -28,6 +28,7 @@ const NewShipmentModal = ({ onShipmentCreated }) => {
   };
 
   const handleClose = () => {
+    onShipmentCreated();
     setIsOpen(false);
     resetForm();
   };
