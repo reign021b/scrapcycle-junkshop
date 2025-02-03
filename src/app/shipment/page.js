@@ -2,12 +2,16 @@
 
 import React, { useState, useEffect } from "react";
 import Navbar from "../components/navbar";
-import { LuFilter, LuPlus } from "react-icons/lu";
-import { TbArrowsSort } from "react-icons/tb";
-import { FaSortDown, FaSortUp } from "react-icons/fa";
 import { supabase } from "/utils/supabase/client";
 import NewShipmentModal from "./modals/NewShipmentModal";
 import StatusDropdown from "./components/StatusDropdown";
+import Image from "next/image";
+
+// Icons
+import { LuFilter, LuPlus } from "react-icons/lu";
+import { TbArrowsSort } from "react-icons/tb";
+import { FaSortDown, FaSortUp } from "react-icons/fa";
+import { ImMakeGroup } from "react-icons/im";
 
 const Shipment = () => {
   const [selectedStatus, setSelectedStatus] = useState("ONGOING");
@@ -71,37 +75,67 @@ const Shipment = () => {
 
   const fetchShipments = async () => {
     try {
-      // Fetch shipment logs
-      const { data: shipmentLogs, error: shipmentError } = await supabase
-        .from("shipmentLogs")
-        .select("*")
-        .order("shipping_date", { ascending: false });
+      // Fetch all needed data at once
+      const [
+        shipmentLogsResult,
+        itemsResult,
+        itemgoalsResult,
+        itemtypesResult,
+      ] = await Promise.all([
+        supabase
+          .from("shipmentLogs")
+          .select("*")
+          .order("shipping_date", { ascending: false }),
+        supabase.from("shippedItems").select("*"),
+        supabase.from("itemgoals").select("*"),
+        supabase.from("itemtypes").select("*"),
+      ]);
 
-      if (shipmentError) throw shipmentError;
+      // Check for errors
+      if (shipmentLogsResult.error) throw shipmentLogsResult.error;
+      if (itemsResult.error) throw itemsResult.error;
+      if (itemgoalsResult.error) throw itemgoalsResult.error;
+      if (itemtypesResult.error) throw itemtypesResult.error;
 
-      // Fetch items for each shipment
-      const shipmentsWithItems = await Promise.all(
-        shipmentLogs.map(async (shipment) => {
-          const { data: items, error: itemsError } = await supabase
-            .from("shippedItems")
-            .select("*")
-            .eq("shipment_id", shipment.id);
+      // Create lookup objects for faster access
+      const itemgoalsMap = itemgoalsResult.data.reduce((acc, item) => {
+        acc[item.item] = {
+          image: item.image,
+          type: item.type,
+        };
+        return acc;
+      }, {});
 
-          if (itemsError) throw itemsError;
+      const itemtypesMap = itemtypesResult.data.reduce((acc, type) => {
+        acc[type.id] = type.name;
+        return acc;
+      }, {});
 
-          const totals = calculateShipmentTotals(items || []);
+      // Process shipments with their items
+      const shipmentsWithItems = shipmentLogsResult.data.map((shipment) => {
+        const shipmentItems = itemsResult.data
+          .filter((item) => item.shipment_id === shipment.id)
+          .map((item) => {
+            const itemgoalInfo = itemgoalsMap[item.item] || {};
+            return {
+              ...item,
+              image: itemgoalInfo.image || "",
+              type: itemtypesMap[itemgoalInfo.type] || "",
+            };
+          });
 
-          return {
-            ...shipment,
-            items: items || [],
-            calculatedCapital: totals.capital,
-            calculatedTotal: totals.total,
-            calculatedRevenue: totals.revenue,
-            calculatedDiff:
-              totals.revenue > 0 ? totals.revenue - totals.capital : null,
-          };
-        })
-      );
+        const totals = calculateShipmentTotals(shipmentItems);
+
+        return {
+          ...shipment,
+          items: shipmentItems,
+          calculatedCapital: totals.capital,
+          calculatedTotal: totals.total,
+          calculatedRevenue: totals.revenue,
+          calculatedDiff:
+            totals.revenue > 0 ? totals.revenue - totals.capital : null,
+        };
+      });
 
       setShipments(shipmentsWithItems);
     } catch (error) {
@@ -353,7 +387,31 @@ const Shipment = () => {
                           } pl-6 text-xs border border-t-0 border-x-0 py-4 pr-6 items-center`}
                         >
                           <div className="text-gray-400">#{item.id}</div>
-                          <div>{item.item}</div>
+                          <div className="flex items-center">
+                            <div>
+                              <Image
+                                src={item.image || ""}
+                                width={27}
+                                height={27}
+                                alt="item image"
+                              />
+                            </div>
+                            <div className="ml-2">
+                              <div>
+                                {item.item.replace(/\b\w/g, (char) =>
+                                  char.toUpperCase()
+                                )}
+                              </div>
+                              <div className="flex w-full items-center">
+                                <div>
+                                  <ImMakeGroup />
+                                </div>
+                                <div className="text-[0.65rem] ml-[2px]">
+                                  {item.type}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
                           <div>
                             {isNaN(Number(item.in_quan))
                               ? "0"
