@@ -248,146 +248,149 @@ const Shipment = () => {
               <div className="ml-12"></div>
             </div>
           </div>
-
-          {/* Rows of Data */}
-          {shipments
-            .filter(
-              (shipment) =>
-                selectedStatus === "ALL" || shipment.status === selectedStatus
-            )
-            .map((shipment) => (
-              <React.Fragment key={shipment.id}>
-                <div
-                  onClick={() => toggleRowExpansion(shipment.id)}
-                  className={`grid ${
-                    shipment.status === "DONE" ? "grid-cols-9" : "grid-cols-6"
-                  } pl-6 text-xs text-gray-500 ${
-                    getStatusStyles(shipment.status).row
-                  } border border-t-0 border-x-0 py-3 pr-6 items-center cursor-pointer`}
-                >
-                  <div>#{shipment.id}</div>
-                  <div className="text-black">{shipment.buyer}</div>
-                  <div className="text-black">{shipment.destination}</div>
-                  <div>
-                    <div className="text-black">
-                      {formatDate(shipment.departure)}
+          <div className="overflow-y-auto h-[65vh]">
+            {/* Rows of Data */}
+            {shipments
+              .filter(
+                (shipment) =>
+                  selectedStatus === "ALL" || shipment.status === selectedStatus
+              )
+              .map((shipment) => (
+                <React.Fragment key={shipment.id}>
+                  <div
+                    onClick={() => toggleRowExpansion(shipment.id)}
+                    className={`grid ${
+                      shipment.status === "DONE" ? "grid-cols-9" : "grid-cols-6"
+                    } pl-6 text-xs text-gray-500 ${
+                      getStatusStyles(shipment.status).row
+                    } border border-t-0 border-x-0 py-3 pr-6 items-center cursor-pointer`}
+                  >
+                    <div>#{shipment.id}</div>
+                    <div className="text-black">{shipment.buyer}</div>
+                    <div className="text-black">{shipment.destination}</div>
+                    <div>
+                      <div className="text-black">
+                        {formatDate(shipment.departure)}
+                      </div>
+                      <div className="text-gray-500">
+                        {formatTime(shipment.departure)}
+                      </div>
                     </div>
-                    <div className="text-gray-500">
-                      {formatTime(shipment.departure)}
-                    </div>
-                  </div>
-                  {shipment.status === "DONE" && (
-                    <>
-                      <div>
+                    {shipment.status === "DONE" && (
+                      <>
+                        <div>
+                          <div className="text-black">
+                            {formatDate(shipment.arrival)}
+                          </div>
+                          <div className="text-gray-500">
+                            {formatTime(shipment.arrival)}
+                          </div>
+                        </div>
                         <div className="text-black">
-                          {formatDate(shipment.arrival)}
+                          {formatCurrency(shipment.calculatedCapital)}
                         </div>
-                        <div className="text-gray-500">
-                          {formatTime(shipment.arrival)}
+                        <div className="text-black">
+                          {formatCurrency(shipment.calculatedRevenue)}
                         </div>
+                        <div className="text-black">
+                          {shipment.calculatedDiff !== null
+                            ? formatCurrency(shipment.calculatedDiff)
+                            : "-"}
+                        </div>
+                      </>
+                    )}
+                    {shipment.status !== "DONE" && (
+                      <>
+                        <div className="text-black">
+                          {formatCurrency(shipment.calculatedTotal)}
+                        </div>
+                      </>
+                    )}
+                    <div className="flex items-center justify-center text-center">
+                      <StatusDropdown
+                        currentStatus={shipment.status}
+                        shipmentId={shipment.id}
+                        onStatusUpdate={fetchShipments}
+                      />
+                      <div className="ml-6 text-2xl">
+                        {expandedRows.has(shipment.id) ? (
+                          <FaSortUp className="mt-3" />
+                        ) : (
+                          <FaSortDown className="mb-3" />
+                        )}
                       </div>
-                      <div className="text-black">
-                        {formatCurrency(shipment.calculatedCapital)}
-                      </div>
-                      <div className="text-black">
-                        {formatCurrency(shipment.calculatedRevenue)}
-                      </div>
-                      <div className="text-black">
-                        {shipment.calculatedDiff !== null
-                          ? formatCurrency(shipment.calculatedDiff)
-                          : "-"}
-                      </div>
-                    </>
-                  )}
-                  {shipment.status !== "DONE" && (
-                    <>
-                      <div className="text-black">
-                        {formatCurrency(shipment.calculatedTotal)}
-                      </div>
-                    </>
-                  )}
-                  <div className="flex items-center justify-center text-center">
-                    <StatusDropdown
-                      currentStatus={shipment.status}
-                      shipmentId={shipment.id}
-                      onStatusUpdate={fetchShipments}
-                    />
-                    <div className="ml-6 text-2xl">
-                      {expandedRows.has(shipment.id) ? (
-                        <FaSortUp className="mt-3" />
-                      ) : (
-                        <FaSortDown className="mb-3" />
-                      )}
                     </div>
                   </div>
-                </div>
 
-                {expandedRows.has(shipment.id) && (
-                  <>
-                    <div
-                      className={`grid ${
-                        shipment.status === "DONE"
-                          ? "grid-cols-7"
-                          : "grid-cols-5"
-                      } pl-6 text-xs text-gray-500 border border-t-0 border-x-0 py-1 pr-6 items-center`}
-                    >
-                      <div>ITEM ID</div>
-                      <div>ITEM</div>
-                      <div>IN-QUAN.</div>
-                      <div>PRICE</div>
-                      <div>TOTAL</div>
-                      {shipment.status === "DONE" && (
-                        <>
-                          <div>OUT-QUAN.</div>
-                          <div>REVENUE</div>
-                        </>
-                      )}
-                    </div>
-                    {shipment.items.map((item) => (
+                  {expandedRows.has(shipment.id) && (
+                    <>
                       <div
-                        key={item.id}
                         className={`grid ${
                           shipment.status === "DONE"
                             ? "grid-cols-7"
                             : "grid-cols-5"
-                        } pl-6 text-xs border border-t-0 border-x-0 py-4 pr-6 items-center`}
+                        } pl-6 text-xs text-gray-500 border border-t-0 border-x-0 py-1 pr-6 items-center`}
                       >
-                        <div className="text-gray-400">#{item.id}</div>
-                        <div>{item.item}</div>
-                        <div>
-                          {isNaN(Number(item.in_quan))
-                            ? "0"
-                            : Number(item.in_quan).toLocaleString("en-PH")}{" "}
-                          kgs
-                        </div>
-                        <div>{formatCurrency(parsePrice(item.price))}</div>
-                        <div>{formatCurrency(parsePrice(item.total))}</div>
+                        <div>ITEM ID</div>
+                        <div>ITEM</div>
+                        <div>IN-QUAN.</div>
+                        <div>PRICE</div>
+                        <div>TOTAL</div>
                         {shipment.status === "DONE" && (
                           <>
-                            <div className="text-[#27AE60] font-medium">
-                              {isNaN(Number(item.out_quan))
-                                ? "0"
-                                : Number(item.out_quan).toLocaleString(
-                                    "en-PH"
-                                  )}{" "}
-                              kgs
-                            </div>
-                            <div>
-                              {item.out_quan && item.price
-                                ? formatCurrency(
-                                    parsePrice(item.out_quan) *
-                                      parsePrice(item.price)
-                                  )
-                                : "-"}
-                            </div>
+                            <div>OUT-QUAN.</div>
+                            <div>REVENUE</div>
                           </>
                         )}
                       </div>
-                    ))}
-                  </>
-                )}
-              </React.Fragment>
-            ))}
+                      {shipment.items.map((item) => (
+                        <div
+                          key={item.id}
+                          className={`grid ${
+                            shipment.status === "DONE"
+                              ? "grid-cols-7"
+                              : "grid-cols-5"
+                          } pl-6 text-xs border border-t-0 border-x-0 py-4 pr-6 items-center`}
+                        >
+                          <div className="text-gray-400">#{item.id}</div>
+                          <div>{item.item}</div>
+                          <div>
+                            {isNaN(Number(item.in_quan))
+                              ? "0"
+                              : Number(item.in_quan).toLocaleString(
+                                  "en-PH"
+                                )}{" "}
+                            kgs
+                          </div>
+                          <div>{formatCurrency(parsePrice(item.price))}</div>
+                          <div>{formatCurrency(parsePrice(item.total))}</div>
+                          {shipment.status === "DONE" && (
+                            <>
+                              <div className="text-[#27AE60] font-medium">
+                                {isNaN(Number(item.out_quan))
+                                  ? "0"
+                                  : Number(item.out_quan).toLocaleString(
+                                      "en-PH"
+                                    )}{" "}
+                                kgs
+                              </div>
+                              <div>
+                                {item.out_quan && item.price
+                                  ? formatCurrency(
+                                      parsePrice(item.out_quan) *
+                                        parsePrice(item.price)
+                                    )
+                                  : "-"}
+                              </div>
+                            </>
+                          )}
+                        </div>
+                      ))}
+                    </>
+                  )}
+                </React.Fragment>
+              ))}
+          </div>
         </div>
       </div>
     </div>
