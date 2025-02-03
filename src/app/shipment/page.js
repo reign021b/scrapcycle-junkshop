@@ -102,6 +102,7 @@ const Shipment = () => {
         acc[item.item] = {
           image: item.image,
           type: item.type,
+          unit: item.unit,
         };
         return acc;
       }, {});
@@ -121,6 +122,7 @@ const Shipment = () => {
               ...item,
               image: itemgoalInfo.image || "",
               type: itemtypesMap[itemgoalInfo.type] || "",
+              unit: itemgoalInfo.unit || "-",
             };
           });
 
@@ -418,8 +420,9 @@ const Shipment = () => {
                               : Number(item.in_quan).toLocaleString(
                                   "en-PH"
                                 )}{" "}
-                            kgs
+                            {item.unit}
                           </div>
+
                           <div>{formatCurrency(parsePrice(item.price))}</div>
                           <div>{formatCurrency(parsePrice(item.total))}</div>
                           {shipment.status === "DONE" && (
@@ -430,7 +433,7 @@ const Shipment = () => {
                                   : Number(item.out_quan).toLocaleString(
                                       "en-PH"
                                     )}{" "}
-                                kgs
+                                {item.unit}
                               </div>
                               <div>
                                 {item.out_quan && item.price
