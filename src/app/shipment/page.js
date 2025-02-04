@@ -8,8 +8,7 @@ import StatusDropdown from "./components/StatusDropdown";
 import Image from "next/image";
 
 // Icons
-import { LuFilter, LuPlus } from "react-icons/lu";
-import { TbArrowsSort } from "react-icons/tb";
+import { LuFilter, LuSearch, LuX } from "react-icons/lu";
 import { FaSortDown, FaSortUp } from "react-icons/fa";
 import { ImMakeGroup } from "react-icons/im";
 
@@ -18,6 +17,22 @@ const Shipment = () => {
   const [expandedRows, setExpandedRows] = useState(new Set());
   const [shipments, setShipments] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [isSearchVisible, setIsSearchVisible] = useState(false);
+
+  const filteredShipments = shipments.filter(
+    (shipment) =>
+      (selectedStatus === "ALL" || shipment.status === selectedStatus) &&
+      (searchTerm === "" ||
+        shipment.buyer.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        shipment.destination.toLowerCase().includes(searchTerm.toLowerCase()))
+  );
+
+  // Toggle search input visibility
+  const toggleSearchVisibility = () => {
+    setIsSearchVisible(!isSearchVisible);
+    setSearchTerm("");
+  };
 
   const handleShipmentCreated = () => {
     fetchShipments();
@@ -238,19 +253,39 @@ const Shipment = () => {
             </div>
 
             <div className="flex items-center font-medium">
-              <div className="relative">
-                <div className="mr-8 flex items-center font-medium cursor-pointer p-2 rounded-xl">
+              <div className="flex items-center relative">
+                <div
+                  onClick={toggleSearchVisibility}
+                  className="mr-4 flex items-center font-medium cursor-pointer p-2 rounded-xl"
+                >
                   <span className="text-lg">
                     <LuFilter />
                   </span>
                   <div className="ml-2 text-sm">Filter</div>
                 </div>
-              </div>
-              <div className="mr-8 flex items-center font-medium cursor-pointer">
-                <span className="text-lg">
-                  <TbArrowsSort />
-                </span>
-                <div className="ml-2 text-sm">Sort by</div>
+
+                <div
+                  className={`font-normal flex items-center transition-all duration-300 ease-in-out mr-2 ${
+                    isSearchVisible ? "w-72" : "w-0 overflow-hidden"
+                  }`}
+                >
+                  <div className="relative flex-grow">
+                    <input
+                      type="text"
+                      placeholder="Search buyer or destination"
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="font-regular w-full pl-8 pr-8 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                    />
+                    <LuSearch className="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-600" />
+                    {searchTerm && (
+                      <LuX
+                        onClick={() => setSearchTerm("")}
+                        className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-600 cursor-pointer hover:text-gray-600"
+                      />
+                    )}
+                  </div>
+                </div>
               </div>
               <div className="mr-6 border-[0.5px] border-r-0 h-10"></div>
               <NewShipmentModal onShipmentCreated={handleShipmentCreated} />
@@ -286,171 +321,164 @@ const Shipment = () => {
           </div>
           <div className="overflow-y-auto h-[65vh]">
             {/* Rows of Data */}
-            {shipments
-              .filter(
-                (shipment) =>
-                  selectedStatus === "ALL" || shipment.status === selectedStatus
-              )
-              .map((shipment) => (
-                <React.Fragment key={shipment.id}>
-                  <div
-                    onClick={() => toggleRowExpansion(shipment.id)}
-                    className={`grid ${
-                      shipment.status === "DONE" ? "grid-cols-9" : "grid-cols-6"
-                    } pl-6 text-xs text-gray-500 ${
-                      getStatusStyles(shipment.status).row
-                    } border border-t-0 border-x-0 py-3 pr-6 items-center cursor-pointer`}
-                  >
-                    <div>#{shipment.id}</div>
-                    <div className="text-black">{shipment.buyer}</div>
-                    <div className="text-black">{shipment.destination}</div>
-                    <div>
-                      <div className="text-black">
-                        {formatDate(shipment.departure)}
-                      </div>
-                      <div className="text-gray-500">
-                        {formatTime(shipment.departure)}
-                      </div>
+            {filteredShipments.map((shipment) => (
+              <React.Fragment key={shipment.id}>
+                <div
+                  onClick={() => toggleRowExpansion(shipment.id)}
+                  className={`grid ${
+                    shipment.status === "DONE" ? "grid-cols-9" : "grid-cols-6"
+                  } pl-6 text-xs text-gray-500 ${
+                    getStatusStyles(shipment.status).row
+                  } border border-t-0 border-x-0 py-3 pr-6 items-center cursor-pointer`}
+                >
+                  <div>#{shipment.id}</div>
+                  <div className="text-black">{shipment.buyer}</div>
+                  <div className="text-black">{shipment.destination}</div>
+                  <div>
+                    <div className="text-black">
+                      {formatDate(shipment.departure)}
                     </div>
-                    {shipment.status === "DONE" && (
-                      <>
-                        <div>
-                          <div className="text-black">
-                            {formatDate(shipment.arrival)}
-                          </div>
-                          <div className="text-gray-500">
-                            {formatTime(shipment.arrival)}
-                          </div>
-                        </div>
-                        <div className="text-black">
-                          {formatCurrency(shipment.calculatedCapital)}
-                        </div>
-                        <div className="text-black">
-                          {formatCurrency(shipment.calculatedRevenue)}
-                        </div>
-                        <div className="text-black">
-                          {shipment.calculatedDiff !== null
-                            ? formatCurrency(shipment.calculatedDiff)
-                            : "-"}
-                        </div>
-                      </>
-                    )}
-                    {shipment.status !== "DONE" && (
-                      <>
-                        <div className="text-black">
-                          {formatCurrency(shipment.calculatedTotal)}
-                        </div>
-                      </>
-                    )}
-                    <div className="flex items-center justify-center text-center">
-                      <StatusDropdown
-                        currentStatus={shipment.status}
-                        shipmentId={shipment.id}
-                        onStatusUpdate={fetchShipments}
-                      />
-                      <div className="ml-6 text-2xl">
-                        {expandedRows.has(shipment.id) ? (
-                          <FaSortUp className="mt-3" />
-                        ) : (
-                          <FaSortDown className="mb-3" />
-                        )}
-                      </div>
+                    <div className="text-gray-500">
+                      {formatTime(shipment.departure)}
                     </div>
                   </div>
-
-                  {expandedRows.has(shipment.id) && (
+                  {shipment.status === "DONE" && (
                     <>
+                      <div>
+                        <div className="text-black">
+                          {formatDate(shipment.arrival)}
+                        </div>
+                        <div className="text-gray-500">
+                          {formatTime(shipment.arrival)}
+                        </div>
+                      </div>
+                      <div className="text-black">
+                        {formatCurrency(shipment.calculatedCapital)}
+                      </div>
+                      <div className="text-black">
+                        {formatCurrency(shipment.calculatedRevenue)}
+                      </div>
+                      <div className="text-black">
+                        {shipment.calculatedDiff !== null
+                          ? formatCurrency(shipment.calculatedDiff)
+                          : "-"}
+                      </div>
+                    </>
+                  )}
+                  {shipment.status !== "DONE" && (
+                    <>
+                      <div className="text-black">
+                        {formatCurrency(shipment.calculatedTotal)}
+                      </div>
+                    </>
+                  )}
+                  <div className="flex items-center justify-center text-center">
+                    <StatusDropdown
+                      currentStatus={shipment.status}
+                      shipmentId={shipment.id}
+                      onStatusUpdate={fetchShipments}
+                    />
+                    <div className="ml-6 text-2xl">
+                      {expandedRows.has(shipment.id) ? (
+                        <FaSortUp className="mt-3" />
+                      ) : (
+                        <FaSortDown className="mb-3" />
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {expandedRows.has(shipment.id) && (
+                  <>
+                    <div
+                      className={`grid ${
+                        shipment.status === "DONE"
+                          ? "grid-cols-7"
+                          : "grid-cols-5"
+                      } pl-6 text-xs text-gray-500 border border-t-0 border-x-0 py-1 pr-6 items-center`}
+                    >
+                      <div>ITEM ID</div>
+                      <div>ITEM</div>
+                      <div>IN-QUAN.</div>
+                      <div>PRICE</div>
+                      <div>TOTAL</div>
+                      {shipment.status === "DONE" && (
+                        <>
+                          <div>OUT-QUAN.</div>
+                          <div>REVENUE</div>
+                        </>
+                      )}
+                    </div>
+                    {shipment.items.map((item) => (
                       <div
+                        key={item.id}
                         className={`grid ${
                           shipment.status === "DONE"
                             ? "grid-cols-7"
                             : "grid-cols-5"
-                        } pl-6 text-xs text-gray-500 border border-t-0 border-x-0 py-1 pr-6 items-center`}
+                        } pl-6 text-xs border border-t-0 border-x-0 py-4 pr-6 items-center`}
                       >
-                        <div>ITEM ID</div>
-                        <div>ITEM</div>
-                        <div>IN-QUAN.</div>
-                        <div>PRICE</div>
-                        <div>TOTAL</div>
+                        <div className="text-gray-400">#{item.id}</div>
+                        <div className="flex items-center">
+                          <div>
+                            <Image
+                              src={item.image || ""}
+                              width={27}
+                              height={27}
+                              alt="item image"
+                            />
+                          </div>
+                          <div className="ml-2">
+                            <div>
+                              {item.item.replace(/\b\w/g, (char) =>
+                                char.toUpperCase()
+                              )}
+                            </div>
+                            <div className="flex w-full items-center">
+                              <div>
+                                <ImMakeGroup />
+                              </div>
+                              <div className="text-[0.65rem] ml-[2px]">
+                                {item.type}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        <div>
+                          {isNaN(Number(item.in_quan))
+                            ? "0"
+                            : Number(item.in_quan).toLocaleString("en-PH")}{" "}
+                          {item.unit}
+                        </div>
+
+                        <div>{formatCurrency(parsePrice(item.price))}</div>
+                        <div>{formatCurrency(parsePrice(item.total))}</div>
                         {shipment.status === "DONE" && (
                           <>
-                            <div>OUT-QUAN.</div>
-                            <div>REVENUE</div>
+                            <div className="text-[#27AE60] font-medium">
+                              {isNaN(Number(item.out_quan))
+                                ? "0"
+                                : Number(item.out_quan).toLocaleString(
+                                    "en-PH"
+                                  )}{" "}
+                              {item.unit}
+                            </div>
+                            <div>
+                              {item.out_quan && item.price
+                                ? formatCurrency(
+                                    parsePrice(item.out_quan) *
+                                      parsePrice(item.price)
+                                  )
+                                : "-"}
+                            </div>
                           </>
                         )}
                       </div>
-                      {shipment.items.map((item) => (
-                        <div
-                          key={item.id}
-                          className={`grid ${
-                            shipment.status === "DONE"
-                              ? "grid-cols-7"
-                              : "grid-cols-5"
-                          } pl-6 text-xs border border-t-0 border-x-0 py-4 pr-6 items-center`}
-                        >
-                          <div className="text-gray-400">#{item.id}</div>
-                          <div className="flex items-center">
-                            <div>
-                              <Image
-                                src={item.image || ""}
-                                width={27}
-                                height={27}
-                                alt="item image"
-                              />
-                            </div>
-                            <div className="ml-2">
-                              <div>
-                                {item.item.replace(/\b\w/g, (char) =>
-                                  char.toUpperCase()
-                                )}
-                              </div>
-                              <div className="flex w-full items-center">
-                                <div>
-                                  <ImMakeGroup />
-                                </div>
-                                <div className="text-[0.65rem] ml-[2px]">
-                                  {item.type}
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                          <div>
-                            {isNaN(Number(item.in_quan))
-                              ? "0"
-                              : Number(item.in_quan).toLocaleString(
-                                  "en-PH"
-                                )}{" "}
-                            {item.unit}
-                          </div>
-
-                          <div>{formatCurrency(parsePrice(item.price))}</div>
-                          <div>{formatCurrency(parsePrice(item.total))}</div>
-                          {shipment.status === "DONE" && (
-                            <>
-                              <div className="text-[#27AE60] font-medium">
-                                {isNaN(Number(item.out_quan))
-                                  ? "0"
-                                  : Number(item.out_quan).toLocaleString(
-                                      "en-PH"
-                                    )}{" "}
-                                {item.unit}
-                              </div>
-                              <div>
-                                {item.out_quan && item.price
-                                  ? formatCurrency(
-                                      parsePrice(item.out_quan) *
-                                        parsePrice(item.price)
-                                    )
-                                  : "-"}
-                              </div>
-                            </>
-                          )}
-                        </div>
-                      ))}
-                    </>
-                  )}
-                </React.Fragment>
-              ))}
+                    ))}
+                  </>
+                )}
+              </React.Fragment>
+            ))}
           </div>
         </div>
       </div>
