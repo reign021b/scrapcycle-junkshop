@@ -32,13 +32,24 @@ const ProcessedItemsList = ({ activeButton }) => {
 
       setJunkshopId(operatorData.junkshop_id);
 
-      const { data, error } = await supabase
+      const { data: processedData, error: processedError } = await supabase
         .rpc("get_processed_items")
         .eq("junkshop_id", operatorData.junkshop_id);
 
-      if (error) throw error;
+      if (processedError) throw processedError;
 
-      setProcessedItems(data || []);
+      // Fetch units
+      const { data: unitsData } = await supabase
+        .from("itemgoals")
+        .select("item, unit");
+
+      // Add unit to processed items
+      const itemsWithUnits = processedData.map((item) => ({
+        ...item,
+        unit: unitsData?.find((u) => u.item === item.item)?.unit || "kg",
+      }));
+
+      setProcessedItems(itemsWithUnits || []);
     } catch (error) {
       console.error("Error fetching processed items:", error);
     }
@@ -218,7 +229,9 @@ const ProcessedItemsList = ({ activeButton }) => {
                   </div>
                 </div>
                 <div className="text-[0.7rem] text-center">
-                  {item.quantity} kg
+                  <div className="text-[0.7rem] text-center">
+                    {item.quantity} {item.unit}
+                  </div>
                 </div>
               </div>
             );
