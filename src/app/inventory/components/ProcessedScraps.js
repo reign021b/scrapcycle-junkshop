@@ -179,6 +179,7 @@ export default function ProcessedScraps() {
       junkshop_id: newItemData.junkshop_id,
       branch: newItemData.branch,
       price: newItemData.price,
+      unit: newItemData.unit,
     };
 
     const { error } = await supabase
@@ -236,6 +237,7 @@ export default function ProcessedScraps() {
       image: "",
       branch: "",
       price: "",
+      unit: "",
       junkshop_id: junkshopId,
     });
     setSelectedType(null);

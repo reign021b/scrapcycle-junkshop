@@ -122,13 +122,14 @@ export const AddItemModal = ({
           </div>
           <div className="mb-4">
             <label className="block text-sm font-medium text-gray-700">
-              Unit (e.g., kg, pcs, g)
+              Unit of Measurement
             </label>
             <input
               type="text"
               name="unit"
               value={newItemData.unit}
               onChange={onChange}
+              placeholder="e.g., kg, pcs, g"
               className="mt-1 block w-full p-2 rounded-md border shadow-sm focus:border-green-500 focus:ring-green-500"
               required
             />
@@ -154,7 +155,7 @@ export const AddItemModal = ({
           </div>
           <div className="mb-4">
             <label className="block text-sm font-medium text-gray-700">
-              Price (₱)
+              Price (₱/{newItemData.unit || "unit"})
             </label>
             <input
               type="number"
@@ -169,15 +170,17 @@ export const AddItemModal = ({
           </div>
           <div className="mb-4">
             <label className="block text-sm font-medium text-gray-700">
-              Goal Quantity
+              Goal Quantity ({newItemData.unit || "units"})
             </label>
             <input
-              type="text"
+              type="number"
               name="goalQuantity"
               value={newItemData.goalQuantity}
               onChange={onChange}
               className="mt-1 block w-full rounded-md border p-2 shadow-sm focus:border-green-500 focus:ring-green-500"
               required
+              min="0"
+              step="0.01"
             />
           </div>
           <div className="mb-4">
