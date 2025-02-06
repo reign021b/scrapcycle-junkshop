@@ -1,8 +1,37 @@
+import { supabase } from "/utils/supabase/client";
 import Image from "next/image";
 import { SlOptionsVertical } from "react-icons/sl";
 import ProgressBars from "./ProgressBars";
+import { useEffect, useState } from "react";
 
 const ItemCard = ({ item, onItemClick, junkshopId, processedItems }) => {
+  const [itemUnit, setItemUnit] = useState("kg"); // Default to kg if not found
+
+  useEffect(() => {
+    const fetchItemUnit = async () => {
+      try {
+        const { data, error } = await supabase
+          .from("itemgoals")
+          .select("unit")
+          .eq("item", item.item)
+          .single();
+
+        if (error) {
+          console.error("Error fetching item unit:", error);
+          return;
+        }
+
+        if (data?.unit) {
+          setItemUnit(data.unit);
+        }
+      } catch (err) {
+        console.error("Unexpected error:", err);
+      }
+    };
+
+    fetchItemUnit();
+  }, [item.item]);
+
   const getProcessedQuantity = (itemName, branch) => {
     const filteredItems = processedItems.filter(
       (p) =>
@@ -42,7 +71,7 @@ const ItemCard = ({ item, onItemClick, junkshopId, processedItems }) => {
             {item.item.replace(/\b\w/g, (char) => char.toUpperCase())}
           </p>
           <p className="pt-1 font-[480] text-sm text-gray-500">
-            ₱ {item.price || 0} / kg
+            ₱ {item.price || 0} / {itemUnit}
           </p>
         </div>
       </div>
@@ -50,12 +79,12 @@ const ItemCard = ({ item, onItemClick, junkshopId, processedItems }) => {
         <div>
           <div className="flex items-center text-xs mb-2 justify-end">
             <p>
-              {getProcessedQuantity(item.item, item.branch)} kg /{" "}
+              {getProcessedQuantity(item.item, item.branch)} {itemUnit} /{" "}
               {Number(item.goal_quantity).toLocaleString("en-US", {
                 minimumFractionDigits: 2,
                 maximumFractionDigits: 2,
               })}{" "}
-              kg
+              {itemUnit}
             </p>
           </div>
           <ProgressBars
