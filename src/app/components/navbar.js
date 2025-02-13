@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { supabase } from "/utils/supabase/client";
 import { useRouter, usePathname } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 
 // Icons
@@ -17,13 +17,82 @@ const Navbar = () => {
   const router = useRouter();
   const pathname = usePathname();
   const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [userData, setUserData] = useState(null);
+
+  useEffect(() => {
+    const checkAndFetchUserData = async () => {
+      try {
+        // Check session
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
+
+        if (!session) {
+          localStorage.removeItem("userData");
+          router.push("/login");
+          return;
+        }
+
+        // Try to get cached user data
+        const cachedUserData = localStorage.getItem("userData");
+
+        if (cachedUserData) {
+          setUserData(JSON.parse(cachedUserData));
+          setIsLoading(false);
+          return;
+        }
+
+        // If no cached data, fetch from Supabase
+        const { data: operatorData, error } = await supabase
+          .from("operators")
+          .select("id, name, profile_path")
+          .eq("id", session.user.id)
+          .single();
+
+        if (error) {
+          console.error("Error fetching operator data:", error);
+          router.push("/login");
+          return;
+        }
+
+        // Cache the data
+        localStorage.setItem("userData", JSON.stringify(operatorData));
+        setUserData(operatorData);
+        setIsLoading(false);
+      } catch (error) {
+        console.error("Error:", error);
+        router.push("/login");
+      }
+    };
+
+    checkAndFetchUserData();
+
+    // Set up auth state change listener
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === "SIGNED_OUT") {
+        localStorage.removeItem("userData");
+        router.push("/login");
+      }
+    });
+
+    // Cleanup subscription on unmount
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [router]);
 
   const handleSignOut = async () => {
+    localStorage.removeItem("userData");
     await supabase.auth.signOut();
     router.push("/login");
   };
 
-  const isActive = (path) => router.pathname === path;
+  if (isLoading || !userData) {
+    return null;
+  }
 
   return (
     <div className="flex items-center justify-between px-10 py-3 bg-white">
@@ -114,13 +183,13 @@ const Navbar = () => {
       </div>
       <div className="flex items-center">
         <Image
-          src="/reignme.jpg"
+          src={userData.profile_path}
           width={40}
           height={40}
           alt="Profile"
           className="rounded-full"
         />
-        <p className="ml-2 font-semibold">Reignme Burdeos</p>
+        <p className="ml-2 font-semibold">{userData.name}</p>
         <div
           className="border-2 border-gray-900 rounded-lg p-[0.4rem] ml-2 cursor-pointer text-gray-900 hover:border-red-600 hover:text-red-600"
           onClick={() => setShowLogoutModal(true)}
